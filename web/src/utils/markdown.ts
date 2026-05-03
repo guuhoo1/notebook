@@ -3,7 +3,7 @@ import type MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 
 const md: MarkdownIt = markdownit({
-  html: false,
+  html: true,
   xhtmlOut: true,
   breaks: true,
   linkify: true,
@@ -62,11 +62,14 @@ export function parseMarkdown(text: string): string {
     return ''
   }
   
-  const sanitized = sanitizeMarkdownInput(text)
+  const normalized = normalizeMarkdown(text)
+  const sanitized = sanitizeMarkdownInput(normalized)
   return md.render(sanitized)
 }
 
 function sanitizeMarkdownInput(input: string): string {
+  let sanitized = input
+  
   const dangerousPatterns = [
     /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
     /javascript\s*:/gi,
@@ -75,12 +78,39 @@ function sanitizeMarkdownInput(input: string): string {
     /on\w+\s*=/gi
   ]
   
-  let sanitized = input
   for (const pattern of dangerousPatterns) {
     sanitized = sanitized.replace(pattern, '')
   }
   
   return sanitized
+}
+
+export function normalizeMarkdown(text: string): string {
+  if (!text) return ''
+  
+  let normalized = text
+  
+  normalized = normalized.replace(/&amp;/g, '&')
+  normalized = normalized.replace(/&lt;/g, '<')
+  normalized = normalized.replace(/&gt;/g, '>')
+  normalized = normalized.replace(/&quot;/g, '"')
+  normalized = normalized.replace(/&#39;/g, "'")
+  
+  normalized = normalized.replace(/[\u2018\u2019]/g, "'")
+  normalized = normalized.replace(/[\u201C\u201D]/g, '"')
+  normalized = normalized.replace(/[\u2013\u2014]/g, '-')
+  
+  normalized = normalized.replace(/\\\\`/g, '`')
+  normalized = normalized.replace(/\\`/g, '`')
+  
+  normalized = normalized.replace(/`{3,}/g, '```')
+  
+  normalized = normalized.replace(/\u00a0/g, ' ')
+  
+  normalized = normalized.replace(/\r\n/g, '\n')
+  normalized = normalized.replace(/\r/g, '\n')
+  
+  return normalized
 }
 
 export function htmlToMarkdown(html: string): string {

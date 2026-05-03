@@ -30,6 +30,8 @@ const {
 
 const containerRef = ref<HTMLElement | null>(null)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const editorRef = ref<HTMLElement | null>(null)
+const isEditorFocused = ref(false)
 
 const editor = useEditor({
   content: props.modelValue,
@@ -43,8 +45,14 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     const content = editor.getHTML()
     emitUpdate(content)
-    history.pushState(content)
+    scheduleHistoryPush(content)
     autoSave.debouncedSave()
+  },
+  onFocus: () => {
+    isEditorFocused.value = true
+  },
+  onBlur: () => {
+    isEditorFocused.value = false
   },
 })
 
@@ -66,6 +74,17 @@ function emitUpdate(content: string) {
     updateScheduled = false
     emit('update:modelValue', content)
   })
+}
+
+let historyTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleHistoryPush(content: string) {
+  if (historyTimer) {
+    clearTimeout(historyTimer)
+  }
+  historyTimer = setTimeout(() => {
+    history.pushState(content)
+    historyTimer = null
+  }, 300)
 }
 
 const markdownPreview = ref('')
@@ -124,6 +143,17 @@ const markdownSuggestions = [
   { trigger: '***', title: '分割线', template: '\n***\n' },
 ]
 
+let suggestionTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleCheckSuggestions() {
+  if (suggestionTimer) {
+    clearTimeout(suggestionTimer)
+  }
+  suggestionTimer = setTimeout(() => {
+    checkSuggestions()
+    suggestionTimer = null
+  }, 50)
+}
+
 function checkSuggestions() {
   if (!isMarkdownMode.value || !textareaRef.value) {
     showSuggestions.value = false
@@ -179,30 +209,34 @@ function applySuggestion(index: number) {
 function handleTextareaInput(e: Event) {
   const target = e.target as HTMLTextAreaElement
   emit('update:modelValue', target.value)
-  history.pushState(target.value)
+  scheduleHistoryPush(target.value)
   autoSave.debouncedSave()
-  checkSuggestions()
+  scheduleCheckSuggestions()
 }
 
-function handleKeydown(e: KeyboardEvent) {
+function handleTextareaKeydown(e: KeyboardEvent) {
   if (showSuggestions.value) {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
+      e.stopPropagation()
       selectedSuggestionIndex.value = (selectedSuggestionIndex.value + 1) % suggestions.value.length
       return
     }
     if (e.key === 'ArrowUp') {
       e.preventDefault()
+      e.stopPropagation()
       selectedSuggestionIndex.value = (selectedSuggestionIndex.value - 1 + suggestions.value.length) % suggestions.value.length
       return
     }
     if (e.key === 'Enter' || e.key === 'Tab') {
       e.preventDefault()
+      e.stopPropagation()
       applySuggestion(selectedSuggestionIndex.value)
       return
     }
     if (e.key === 'Escape') {
       e.preventDefault()
+      e.stopPropagation()
       showSuggestions.value = false
       return
     }
@@ -210,6 +244,7 @@ function handleKeydown(e: KeyboardEvent) {
 
   if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
     e.preventDefault()
+    e.stopPropagation()
     const content = history.undo()
     if (content !== null) {
       emit('update:modelValue', content)
@@ -220,6 +255,7 @@ function handleKeydown(e: KeyboardEvent) {
 
   if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
     e.preventDefault()
+    e.stopPropagation()
     const content = history.redo()
     if (content !== null) {
       emit('update:modelValue', content)
@@ -230,35 +266,42 @@ function handleKeydown(e: KeyboardEvent) {
 
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
+    e.stopPropagation()
     autoSave.save()
     return
   }
 
   if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
     e.preventDefault()
-    if (isMarkdownMode.value && textareaRef.value) {
-      wrapSelection('**', '**')
-    } else if (editor.value) {
-      editor.value.chain().focus().toggleBold().run()
-    }
+    e.stopPropagation()
+    wrapSelection('**', '**')
     return
   }
 
   if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
     e.preventDefault()
-    if (isMarkdownMode.value && textareaRef.value) {
-      wrapSelection('*', '*')
-    } else if (editor.value) {
-      editor.value.chain().focus().toggleItalic().run()
-    }
+    e.stopPropagation()
+    wrapSelection('*', '*')
     return
   }
 
   if (e.key === 'Tab') {
     e.preventDefault()
-    if (isMarkdownMode.value && textareaRef.value) {
-      insertText('\t')
-    }
+    e.stopPropagation()
+    insertText('\t')
+    return
+  }
+}
+
+function handleGlobalKeydown(e: KeyboardEvent) {
+  if (!isEditorFocused.value && document.activeElement !== textareaRef.value) {
+    return
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    e.stopPropagation()
+    autoSave.save()
     return
   }
 }
@@ -326,12 +369,14 @@ function onDragEnd() {
 }
 
 const editPanelStyle = computed(() => {
-  if (layoutMode.value !== 'split') return { width: '100%' }
+  if (layoutMode.value === 'preview') return { width: '0%' }
+  if (layoutMode.value === 'edit') return { width: '100%' }
   return { width: `${splitRatio.value}%` }
 })
 
 const previewPanelStyle = computed(() => {
-  if (layoutMode.value !== 'split') return { width: '0%' }
+  if (layoutMode.value === 'edit') return { width: '0%' }
+  if (layoutMode.value === 'preview') return { width: '100%' }
   return { width: `${100 - splitRatio.value}%` }
 })
 
@@ -344,17 +389,34 @@ watch(
   }
 )
 
+function handleTextareaFocus() {
+  isEditorFocused.value = true
+}
+
+function handleTextareaBlur() {
+  isEditorFocused.value = false
+}
+
 onMounted(() => {
-  document.addEventListener('keydown', handleKeydown)
+  document.addEventListener('keydown', handleGlobalKeydown, true)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('keydown', handleGlobalKeydown, true)
+  if (historyTimer) {
+    clearTimeout(historyTimer)
+  }
+  if (suggestionTimer) {
+    clearTimeout(suggestionTimer)
+  }
+  if (renderTimer) {
+    cancelAnimationFrame(renderTimer)
+  }
 })
 </script>
 
 <template>
-  <div class="markdown-editor h-full flex flex-col">
+  <div ref="editorRef" class="markdown-editor h-full flex flex-col">
     <div class="flex items-center justify-between px-3 py-1.5 border-b border-hairline bg-canvas">
       <div class="flex items-center gap-1">
         <template v-if="!isMarkdownMode">
@@ -533,8 +595,9 @@ onUnmounted(() => {
           ref="textareaRef"
           :value="modelValue"
           @input="handleTextareaInput"
-          @keydown="handleKeydown"
-          @keyup="checkSuggestions"
+          @keydown="handleTextareaKeydown"
+          @focus="handleTextareaFocus"
+          @blur="handleTextareaBlur"
           class="w-full h-full p-4 bg-transparent outline-none resize-none font-mono text-sm leading-relaxed"
           placeholder="使用 Markdown 语法编辑..."
           spellcheck="false"
