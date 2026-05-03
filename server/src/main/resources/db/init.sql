@@ -152,7 +152,7 @@ CREATE TABLE `note_tag` (
 
 -- 插入测试用户 (密码: password123，使用BCrypt加密)
 INSERT INTO `user` (`email`, `phone`, `nickname`, `password`, `gender`, `status`) VALUES
-('test@example.com', '13800138000', '测试用户', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', 1, 1);
+('test@example.com', '13800138000', '测试用户', '$2a$10$EqKcp1WFKVQISheBxmXJGePJwJbvHfEFvEqJjGWQv2Mb6AqPQvWIi', 1, 1);
 
 -- 插入默认分类
 INSERT INTO `category` (`user_id`, `name`, `description`, `color`, `icon`, `sort_order`) VALUES

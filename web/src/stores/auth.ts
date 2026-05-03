@@ -16,48 +16,70 @@ export const useAuthStore = defineStore('auth', () => {
    * 用户登录
    */
   async function login(params: LoginParams) {
-    const res = await authApi.login(params)
-    if (res.code === 200 && res.data) {
-      token.value = res.data.token
-      user.value = res.data.user
-      localStorage.setItem('token', res.data.token)
+    try {
+      const res = await authApi.login(params)
+      if (res.code === 200 && res.data) {
+        token.value = res.data.token
+        user.value = res.data.user
+        localStorage.setItem('token', res.data.token)
+      }
+      return res
+    } catch (error: any) {
+      clearAuth()
+      throw error
     }
-    return res
   }
 
   /**
    * 用户注册
    */
   async function register(params: RegisterParams) {
-    const res = await authApi.register(params)
-    if (res.code === 200 && res.data) {
-      token.value = res.data.token
-      user.value = res.data.user
-      localStorage.setItem('token', res.data.token)
+    try {
+      const res = await authApi.register(params)
+      if (res.code === 200 && res.data) {
+        token.value = res.data.token
+        user.value = res.data.user
+        localStorage.setItem('token', res.data.token)
+      }
+      return res
+    } catch (error: any) {
+      clearAuth()
+      throw error
     }
-    return res
   }
 
   /**
    * 用户登出
    */
   async function logout() {
-    await authApi.logout()
-    token.value = null
-    user.value = null
-    localStorage.removeItem('token')
+    try {
+      await authApi.logout()
+    } catch {
+      // 忽略登出错误
+    } finally {
+      clearAuth()
+    }
   }
 
   /**
    * 获取用户信息
    */
   async function fetchUserInfo() {
-    if (!token.value) return
-    const res = await authApi.getUserInfo()
-    if (res.code === 200 && res.data) {
-      user.value = res.data
+    if (!token.value) return null
+    
+    try {
+      const res = await authApi.getUserInfo()
+      if (res.code === 200 && res.data) {
+        user.value = res.data
+        return res
+      } else {
+        clearAuth()
+        return null
+      }
+    } catch {
+      clearAuth()
+      return null
     }
-    return res
   }
 
   /**

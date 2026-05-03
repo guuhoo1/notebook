@@ -62,8 +62,12 @@ public class R<T> implements Serializable {
      * @param <T> 数据类型
      * @return 成功响应
      */
+    @SuppressWarnings("unchecked")
     public static <T> R<T> ok() {
-        return ok(null);
+        R<T> r = new R<>();
+        r.setCode(200);
+        r.setMsg("success");
+        return r;
     }
 
     /**

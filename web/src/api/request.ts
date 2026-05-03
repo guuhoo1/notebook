@@ -52,10 +52,24 @@ class HttpClient {
           const { status, data } = error.response
           if (status === 401) {
             localStorage.removeItem('token')
-            window.location.href = '/login'
+            if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+              window.location.href = '/login'
+            }
             return Promise.reject(new Error('请先登录'))
           }
+          if (status === 403) {
+            return Promise.reject(new Error('没有权限访问'))
+          }
+          if (status === 404) {
+            return Promise.reject(new Error('请求的资源不存在'))
+          }
+          if (status === 500) {
+            return Promise.reject(new Error('服务器错误，请稍后重试'))
+          }
           return Promise.reject(new Error(data?.msg || `请求错误: ${status}`))
+        }
+        if (error.code === 'ECONNABORTED') {
+          return Promise.reject(new Error('请求超时，请检查网络'))
         }
         return Promise.reject(new Error('网络错误，请检查网络连接'))
       }
