@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useNoteStore, useCategoryStore } from '@/stores'
 import type { NoteParams } from '@/types'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import { useLocalStorage } from '@vueuse/core'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,6 +22,33 @@ const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
 const markdownMode = ref(false)
+
+// 宽度预设配置
+const WIDTH_PRESETS = {
+  narrow: { label: '窄版', value: 600 },
+  standard: { label: '标准版', value: 800 },
+  wide: { label: '宽版', value: 1000 },
+  full: { label: '全屏', value: 'full' }
+} as const
+
+type WidthPreset = keyof typeof WIDTH_PRESETS
+
+// 使用 localStorage 保存用户偏好
+const currentWidthPreset = useLocalStorage<WidthPreset>('editor-width-preset', 'standard')
+
+// 计算当前宽度样式
+const editorWidthStyle = computed(() => {
+  const preset = WIDTH_PRESETS[currentWidthPreset.value]
+  if (preset.value === 'full') {
+    return { maxWidth: '100%', width: '100%' }
+  }
+  return { maxWidth: `${preset.value}px`, width: '100%' }
+})
+
+// 切换宽度预设
+function setWidthPreset(preset: WidthPreset) {
+  currentWidthPreset.value = preset
+}
 
 const categories = computed(() => categoryStore.categories)
 
@@ -93,62 +121,86 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl mx-auto h-[calc(100vh-80px)]">
+  <div class="p-4 mx-auto h-[calc(100vh-80px)] flex flex-col transition-all duration-300" :style="editorWidthStyle">
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
 
     <template v-else>
-      <div class="flex items-center justify-between mb-6">
-        <button
-          class="flex items-center gap-2 text-muted hover:text-ink transition-colors"
-          @click="goBack"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
-          返回
-        </button>
-        <div class="flex items-center gap-2">
-          <button class="btn-secondary" :disabled="saving" @click="handleSave(true)">
-            存为草稿
+      <!-- 顶部栏：返回、分类、宽度选择、保存按钮 -->
+      <div class="flex items-center justify-between mb-3 gap-3">
+        <div class="flex items-center gap-3">
+          <button
+            class="flex items-center gap-2 text-muted hover:text-ink transition-colors"
+            @click="goBack"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            返回
           </button>
-          <button class="btn-primary" :disabled="saving" @click="handleSave(false)">
+          
+          <!-- 分类选择（紧凑样式） -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-muted">分类:</span>
+            <select v-model="categoryId" class="text-sm px-3 py-1.5 bg-canvas border border-hairline rounded-md text-ink focus:outline-none focus:ring-1 focus:ring-info-border focus:border-info-border">
+              <option :value="null">无分类</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                {{ cat.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <!-- 宽度预设选择器（紧凑样式） -->
+          <div class="flex items-center gap-1 bg-surface-soft rounded-md p-0.5">
+            <button
+              v-for="(preset, key) in WIDTH_PRESETS"
+              :key="key"
+              @click="setWidthPreset(key as WidthPreset)"
+              :class="[
+                'px-2.5 py-1 text-xs rounded transition-all duration-200',
+                currentWidthPreset === key
+                  ? 'bg-primary text-white'
+                  : 'text-muted hover:text-ink hover:bg-canvas'
+              ]"
+            >
+              {{ preset.label }}
+            </button>
+          </div>
+          
+          <button class="btn-secondary text-sm px-4 py-2" :disabled="saving" @click="handleSave(true)">
+            草稿
+          </button>
+          <button class="btn-primary text-sm px-4 py-2" :disabled="saving" @click="handleSave(false)">
             {{ saving ? '保存中...' : '保存' }}
           </button>
         </div>
       </div>
 
-      <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-        <p class="text-sm text-red-600">{{ errorMessage }}</p>
+      <div v-if="errorMessage" class="mb-3 p-2.5 bg-red-50 border border-red-200 rounded-md transition-all duration-300">
+        <p class="text-xs text-red-600">{{ errorMessage }}</p>
       </div>
 
-      <div class="bg-canvas border border-hairline rounded-lg overflow-hidden flex flex-col h-[calc(100%-120px)]">
-        <div class="p-4 border-b border-hairline">
+      <div class="bg-canvas border border-hairline rounded-lg overflow-hidden flex flex-col flex-1 min-h-0 transition-all duration-300">
+        <!-- 标题输入（紧凑样式） -->
+        <div class="px-4 py-3 border-b border-hairline">
           <input
             v-model="title"
             type="text"
-            class="w-full text-title-lg text-ink bg-transparent border-none outline-none placeholder:text-muted"
+            class="w-full text-xl text-ink bg-transparent border-none outline-none placeholder:text-muted transition-all duration-200"
             placeholder="请输入标题..."
           />
         </div>
 
-        <div class="p-4 border-b border-hairline">
-          <label class="block text-label-md text-ink mb-2">分类</label>
-          <select v-model="categoryId" class="input-base">
-            <option :value="null">无分类</option>
-            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="flex-1 overflow-hidden">
+        <!-- 编辑器区域 -->
+        <div class="flex-1 overflow-hidden min-h-0">
           <MarkdownEditor v-model="content" v-model:markdown-mode="markdownMode" />
         </div>
       </div>
