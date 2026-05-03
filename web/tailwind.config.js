@@ -1,0 +1,71 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ['class'],
+  content: [
+    './index.html',
+    './src/**/*.{vue,js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#181d26',
+        'primary-active': '#0d1218',
+        ink: '#181d26',
+        body: '#333840',
+        muted: '#41454d',
+        hairline: '#dddddd',
+        'border-strong': '#9297a0',
+        canvas: '#ffffff',
+        'surface-soft': '#f8fafc',
+        'surface-strong': '#e0e2e6',
+        'surface-dark': '#181d26',
+        'surface-dark-elevated': '#1d1f25',
+        'signature-coral': '#aa2d00',
+        'signature-forest': '#0a2e0e',
+        'signature-cream': '#f5e9d4',
+        'signature-peach': '#fcab79',
+        'signature-mint': '#a8d8c4',
+        'signature-yellow': '#f4d35e',
+        'signature-mustard': '#d9a441',
+        'on-primary': '#ffffff',
+        'on-dark': '#ffffff',
+        link: '#1b61c9',
+        'link-active': '#1a3866',
+        info: '#254fad',
+        'info-border': '#458fff',
+        success: '#006400',
+        'success-border': '#39bf45',
+      },
+      spacing: {
+        'xxs': '4px',
+        'section': '96px',
+      },
+      borderRadius: {
+        'xs': '2px',
+      },
+      fontFamily: {
+        sans: [
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'sans-serif'
+        ],
+      },
+      fontSize: {
+        'display-xl': ['48px', { lineHeight: '1.1', fontWeight: '500' }],
+        'display-lg': ['40px', { lineHeight: '1.2', fontWeight: '400' }],
+        'display-md': ['32px', { lineHeight: '1.2', fontWeight: '400' }],
+        'title-lg': ['24px', { lineHeight: '1.35', fontWeight: '400' }],
+        'title-md': ['20px', { lineHeight: '1.5', fontWeight: '400' }],
+        'title-sm': ['18px', { lineHeight: '1.4', fontWeight: '500' }],
+        'label-md': ['16px', { lineHeight: '1.4', fontWeight: '500' }],
+        'body-md': ['14px', { lineHeight: '1.25', fontWeight: '400' }],
+        'caption': ['14px', { lineHeight: '1.35', fontWeight: '500' }],
+      },
+    },
+  },
+  plugins: [],
+}
