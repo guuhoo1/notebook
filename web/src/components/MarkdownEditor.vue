@@ -96,14 +96,13 @@ function renderMarkdown(content: string) {
   renderTime.value = performance.now() - start
 }
 
-let renderTimer: ReturnType<typeof requestAnimationFrame> | null = null
+let renderScheduled = false
 function scheduleRender(content: string) {
-  if (renderTimer) {
-    cancelAnimationFrame(renderTimer)
-  }
-  renderTimer = requestAnimationFrame(() => {
+  if (renderScheduled) return
+  renderScheduled = true
+  queueMicrotask(() => {
     renderMarkdown(content)
-    renderTimer = null
+    renderScheduled = false
   })
 }
 
@@ -208,10 +207,12 @@ function applySuggestion(index: number) {
 
 function handleTextareaInput(e: Event) {
   const target = e.target as HTMLTextAreaElement
-  emit('update:modelValue', target.value)
-  scheduleHistoryPush(target.value)
+  const newValue = target.value
+  emit('update:modelValue', newValue)
+  scheduleHistoryPush(newValue)
   autoSave.debouncedSave()
   scheduleCheckSuggestions()
+  scheduleRender(newValue)
 }
 
 function handleTextareaKeydown(e: KeyboardEvent) {
@@ -409,9 +410,6 @@ onUnmounted(() => {
   if (suggestionTimer) {
     clearTimeout(suggestionTimer)
   }
-  if (renderTimer) {
-    cancelAnimationFrame(renderTimer)
-  }
 })
 </script>
 
@@ -584,10 +582,10 @@ onUnmounted(() => {
       
       <div
         v-show="layoutMode !== 'preview'"
-        class="overflow-hidden transition-all duration-200"
+        class="overflow-auto transition-all duration-200"
         :style="editPanelStyle"
       >
-        <div v-if="!isMarkdownMode" class="h-full">
+        <div v-if="!isMarkdownMode" class="h-full overflow-auto">
           <EditorContent :editor="editor" class="h-full prose prose-sm max-w-none" />
         </div>
         <textarea
@@ -598,7 +596,7 @@ onUnmounted(() => {
           @keydown="handleTextareaKeydown"
           @focus="handleTextareaFocus"
           @blur="handleTextareaBlur"
-          class="w-full h-full p-4 bg-transparent outline-none resize-none font-mono text-sm leading-relaxed"
+          class="w-full h-full p-4 bg-transparent outline-none resize-none font-mono text-sm leading-relaxed overflow-auto"
           placeholder="使用 Markdown 语法编辑..."
           spellcheck="false"
         ></textarea>
@@ -621,7 +619,7 @@ onUnmounted(() => {
         class="border-l border-hairline overflow-auto transition-all duration-200"
         :style="previewPanelStyle"
       >
-        <div class="p-4">
+        <div class="p-4 h-full overflow-auto">
           <div v-html="markdownPreview" class="markdown-preview"></div>
         </div>
       </div>

@@ -62,8 +62,8 @@ export function parseMarkdown(text: string): string {
     return ''
   }
   
-  const normalized = normalizeMarkdown(text)
-  const sanitized = sanitizeMarkdownInput(normalized)
+  const processed = preprocessMarkdownForRendering(text)
+  const sanitized = sanitizeMarkdownInput(processed)
   return md.render(sanitized)
 }
 
@@ -103,14 +103,79 @@ export function normalizeMarkdown(text: string): string {
   normalized = normalized.replace(/\\\\`/g, '`')
   normalized = normalized.replace(/\\`/g, '`')
   
-  normalized = normalized.replace(/`{3,}/g, '```')
-  
   normalized = normalized.replace(/\u00a0/g, ' ')
   
   normalized = normalized.replace(/\r\n/g, '\n')
   normalized = normalized.replace(/\r/g, '\n')
   
+  normalized = normalized.replace(/`{4,}/gm, '```')
+  
+  normalized = normalized.replace(/\n{3,}/g, '\n\n')
+  
   return normalized
+}
+
+/**
+ * 预处理 Markdown，仅用于预览渲染，不影响编辑区域
+ * 支持从各种来源复制的 Markdown 内容
+ */
+function preprocessMarkdownForRendering(text: string): string {
+  if (!text) return ''
+  
+  let processed = text
+  
+  // HTML 实体解码 - 处理复制过来的转义字符
+  processed = processed.replace(/&amp;/g, '&')
+  processed = processed.replace(/&lt;/g, '<')
+  processed = processed.replace(/&gt;/g, '>')
+  processed = processed.replace(/&quot;/g, '"')
+  processed = processed.replace(/&#39;/g, "'")
+  processed = processed.replace(/&nbsp;/g, ' ')
+  processed = processed.replace(/&copy;/g, '©')
+  processed = processed.replace(/&reg;/g, '®')
+  processed = processed.replace(/&trade;/g, '™')
+  
+  // Unicode 特殊字符处理 - 处理从 Word/网页复制的特殊字符
+  processed = processed.replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+  processed = processed.replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+  processed = processed.replace(/[\u2013\u2014\u2015]/g, '-')
+  processed = processed.replace(/[\u2026]/g, '...')
+  processed = processed.replace(/[\u00AB\u00BB]/g, '"')
+  
+  // 处理转义字符 - 处理各种转义的反引号
+  processed = processed.replace(/\\\\\\\`/g, '`')
+  processed = processed.replace(/\\\\`/g, '`')
+  processed = processed.replace(/\\\`/g, '`')
+  processed = processed.replace(/\\"/g, '"')
+  processed = processed.replace(/\\'/g, "'")
+  
+  // 处理特殊空格字符
+  processed = processed.replace(/\u00a0/g, ' ')
+  processed = processed.replace(/\u2002/g, ' ')
+  processed = processed.replace(/\u2003/g, ' ')
+  processed = processed.replace(/\u2004/g, ' ')
+  processed = processed.replace(/\u2005/g, ' ')
+  processed = processed.replace(/\u2006/g, ' ')
+  processed = processed.replace(/\u2007/g, ' ')
+  processed = processed.replace(/\u2008/g, ' ')
+  processed = processed.replace(/\u2009/g, ' ')
+  processed = processed.replace(/\u200A/g, ' ')
+  processed = processed.replace(/\u200B/g, '')
+  
+  // 制表符转换为空格
+  processed = processed.replace(/\t/g, '    ')
+  
+  // 统一换行符
+  processed = processed.replace(/\r\n/g, '\n')
+  processed = processed.replace(/\r/g, '\n')
+  
+  // 处理代码块标记，确保格式正确
+  processed = processed.replace(/`{4,}/gm, '```')
+  
+  // 清理连续空行
+  processed = processed.replace(/\n{3,}/g, '\n\n')
+  
+  return processed
 }
 
 export function htmlToMarkdown(html: string): string {
