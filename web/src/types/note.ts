@@ -58,6 +58,7 @@ export interface NoteParams {
   content?: string
   categoryId?: number
   tagIds?: number[]
+  status?: NoteStatus
 }
 
 /**

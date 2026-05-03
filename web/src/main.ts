@@ -4,6 +4,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import router from './router'
 import App from './App.vue'
 import './styles/main.css'
+import 'highlight.js/styles/github.css'
 
 const app = createApp(App)
 

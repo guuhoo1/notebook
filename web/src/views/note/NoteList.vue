@@ -225,7 +225,7 @@ onMounted(() => {
               <span
                 v-if="note.categoryName"
                 class="px-2 py-0.5 text-xs rounded-full text-white"
-                :style="{ backgroundColor: note.categoryColor }"
+                :style="{ backgroundColor: note.categoryColor || '#6b7280' }"
               >
                 {{ note.categoryName }}
               </span>
@@ -303,7 +303,7 @@ onMounted(() => {
               <span
                 v-if="note.categoryName"
                 class="px-2 py-0.5 text-xs rounded-full text-white"
-                :style="{ backgroundColor: note.categoryColor }"
+                :style="{ backgroundColor: note.categoryColor || '#6b7280' }"
               >
                 {{ note.categoryName }}
               </span>

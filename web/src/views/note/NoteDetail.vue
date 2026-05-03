@@ -2,6 +2,7 @@
 import { onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNoteStore } from '@/stores'
+import { parseMarkdown } from '@/utils/markdown'
 
 const router = useRouter()
 const route = useRoute()
@@ -209,7 +210,7 @@ onMounted(() => {
             <span
               v-if="note.categoryName"
               class="px-2 py-0.5 text-xs rounded-full text-white"
-              :style="{ backgroundColor: note.categoryColor }"
+              :style="{ backgroundColor: note.categoryColor || '#6b7280' }"
             >
               {{ note.categoryName }}
             </span>
@@ -243,8 +244,8 @@ onMounted(() => {
         </header>
 
         <div
-          class="prose prose-slate max-w-none"
-          v-html="note.content || '<p class=\'text-muted\'>暂无内容</p>'"
+          class="markdown-content"
+          v-html="note.content ? parseMarkdown(note.content) : '<p class=\'text-muted\'>暂无内容</p>'"
         ></div>
       </article>
     </template>
@@ -252,57 +253,103 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.prose :deep(h1) {
-  @apply text-2xl text-ink font-medium mb-4;
+.markdown-content :deep(h1) {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3em;
 }
-.prose :deep(h2) {
-  @apply text-xl text-ink font-medium mb-3 mt-6;
+
+.markdown-content :deep(h2) {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3em;
 }
-.prose :deep(h3) {
-  @apply text-lg text-ink font-medium mb-2 mt-4;
+
+.markdown-content :deep(h3) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
-.prose :deep(p) {
-  @apply text-body mb-4 leading-relaxed;
+
+.markdown-content :deep(p) {
+  margin-bottom: 1rem;
+  line-height: 1.6;
 }
-.prose :deep(ul),
-.prose :deep(ol) {
-  @apply pl-6 mb-4;
+
+.markdown-content :deep(ul),
+.markdown-content :deep(ol) {
+  padding-left: 2rem;
+  margin-bottom: 1rem;
 }
-.prose :deep(li) {
-  @apply text-body mb-1;
+
+.markdown-content :deep(li) {
+  margin-bottom: 0.25rem;
 }
-.prose :deep(ul li) {
-  @apply list-disc;
+
+.markdown-content :deep(blockquote) {
+  border-left: 4px solid #ef4444;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #6b7280;
+  margin: 1rem 0;
 }
-.prose :deep(ol li) {
-  @apply list-decimal;
+
+.markdown-content :deep(code) {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
 }
-.prose :deep(blockquote) {
-  @apply border-l-4 border-signature-coral pl-4 italic text-muted my-4;
+
+.markdown-content :deep(pre) {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
 }
-.prose :deep(code) {
-  @apply bg-surface-soft px-1.5 py-0.5 rounded text-sm font-mono;
+
+.markdown-content :deep(pre code) {
+  background-color: transparent;
+  padding: 0;
 }
-.prose :deep(pre) {
-  @apply bg-surface-dark text-on-dark p-4 rounded-lg overflow-x-auto my-4;
+
+.markdown-content :deep(a) {
+  color: #3b82f6;
+  text-decoration: underline;
 }
-.prose :deep(pre code) {
-  @apply bg-transparent p-0;
+
+.markdown-content :deep(img) {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
 }
-.prose :deep(a) {
-  @apply text-link hover:underline;
+
+.markdown-content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
 }
-.prose :deep(img) {
-  @apply max-w-full h-auto rounded-lg my-4;
+
+.markdown-content :deep(th),
+.markdown-content :deep(td) {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
 }
-.prose :deep(table) {
-  @apply w-full border-collapse my-4;
+
+.markdown-content :deep(th) {
+  background-color: #f9fafb;
+  font-weight: 600;
 }
-.prose :deep(th),
-.prose :deep(td) {
-  @apply border border-hairline px-4 py-2 text-left;
-}
-.prose :deep(th) {
-  @apply bg-surface-soft font-medium;
+
+.markdown-content :deep(tr:nth-child(even)) {
+  background-color: #f9fafb;
 }
 </style>
