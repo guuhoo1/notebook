@@ -1,10 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
-  content: [
-    './index.html',
-    './src/**/*.{vue,js,ts,jsx,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -37,11 +34,11 @@ export default {
         'success-border': '#39bf45',
       },
       spacing: {
-        'xxs': '4px',
-        'section': '96px',
+        xxs: '4px',
+        section: '96px',
       },
       borderRadius: {
-        'xs': '2px',
+        xs: '2px',
       },
       fontFamily: {
         sans: [
@@ -51,7 +48,7 @@ export default {
           'Segoe UI',
           'Roboto',
           'Helvetica Neue',
-          'sans-serif'
+          'sans-serif',
         ],
       },
       fontSize: {
@@ -63,7 +60,7 @@ export default {
         'title-sm': ['18px', { lineHeight: '1.4', fontWeight: '500' }],
         'label-md': ['16px', { lineHeight: '1.4', fontWeight: '500' }],
         'body-md': ['14px', { lineHeight: '1.25', fontWeight: '400' }],
-        'caption': ['14px', { lineHeight: '1.35', fontWeight: '500' }],
+        caption: ['14px', { lineHeight: '1.35', fontWeight: '500' }],
       },
     },
   },

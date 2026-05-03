@@ -6,17 +6,17 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   server: {
     port: 5173,
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
-        changeOrigin: true
-      }
-    }
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: 'dist',
@@ -25,10 +25,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['vue', 'vue-router', 'pinia'],
-          'ui': ['radix-vue', 'lucide-vue-next']
-        }
-      }
-    }
-  }
+          vendor: ['vue', 'vue-router', 'pinia'],
+          ui: ['radix-vue', 'lucide-vue-next'],
+        },
+      },
+    },
+  },
 })

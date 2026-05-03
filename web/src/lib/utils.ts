@@ -23,7 +23,7 @@ export function formatDate(date: Date | string, format: string = 'YYYY-MM-DD HH:
   const day = String(d.getDate()).padStart(2, '0')
   const hours = String(d.getHours()).padStart(2, '0')
   const minutes = String(d.getMinutes()).padStart(2, '0')
-  
+
   return format
     .replace('YYYY', String(year))
     .replace('MM', month)

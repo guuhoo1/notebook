@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { noteApi } from '@/api'
-import type { Note, NoteDetail, NoteListItem, NoteParams, PageQuery, PageResult } from '@/types'
+import type { NoteDetail, NoteListItem, NoteParams, PageQuery } from '@/types'
 
 /**
  * 笔记状态管理Store
@@ -76,7 +76,7 @@ export const useNoteStore = defineStore('note', () => {
   async function deleteNote(id: number) {
     const res = await noteApi.delete(id)
     if (res.code === 200) {
-      notes.value = notes.value.filter(n => n.id !== id)
+      notes.value = notes.value.filter((n) => n.id !== id)
     }
     return res
   }
@@ -87,7 +87,7 @@ export const useNoteStore = defineStore('note', () => {
   async function pinNote(id: number, isPinned: number) {
     const res = await noteApi.pin(id, isPinned)
     if (res.code === 200) {
-      const note = notes.value.find(n => n.id === id)
+      const note = notes.value.find((n) => n.id === id)
       if (note) {
         note.isPinned = isPinned
       }

@@ -1,18 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useAuthStore } from '@/stores'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const searchQuery = ref('')
 const showUserMenu = ref(false)
-
-onMounted(async () => {
-  if (authStore.isAuthenticated && !authStore.user) {
-    await authStore.fetchUserInfo()
-  }
-})
 
 function handleSearch() {
   if (searchQuery.value.trim()) {
@@ -52,11 +46,9 @@ function closeUserMenu() {
   <header class="fixed top-0 left-0 right-0 h-16 bg-canvas border-b border-hairline z-50">
     <div class="h-full px-4 md:px-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <router-link to="/" class="text-title-md text-ink font-semibold">
-          记事本
-        </router-link>
+        <router-link to="/" class="text-title-md text-ink font-semibold"> 记事本 </router-link>
       </div>
-      
+
       <div class="hidden md:flex flex-1 max-w-md mx-8">
         <div class="relative w-full">
           <input
@@ -81,12 +73,12 @@ function closeUserMenu() {
           </svg>
         </div>
       </div>
-      
+
       <div class="flex items-center gap-3">
         <button v-if="authStore.isAuthenticated" class="btn-primary text-sm" @click="createNote">
           新建笔记
         </button>
-        
+
         <div v-if="authStore.isAuthenticated" class="relative">
           <button
             class="w-8 h-8 rounded-full bg-surface-strong flex items-center justify-center hover:bg-primary transition-colors"
@@ -100,14 +92,16 @@ function closeUserMenu() {
               {{ authStore.user?.nickname?.charAt(0) || 'U' }}
             </span>
           </button>
-          
+
           <div
             v-if="showUserMenu"
             class="absolute right-0 top-full mt-2 w-48 bg-canvas border border-hairline rounded-md shadow-lg py-1"
           >
             <div class="px-4 py-2 border-b border-hairline">
               <p class="text-label-md text-ink truncate">{{ authStore.user?.nickname }}</p>
-              <p class="text-caption text-muted truncate">{{ authStore.user?.email || authStore.user?.phone }}</p>
+              <p class="text-caption text-muted truncate">
+                {{ authStore.user?.email || authStore.user?.phone }}
+              </p>
             </div>
             <button
               class="w-full px-4 py-2 text-left text-body-md text-body hover:bg-surface-soft"
@@ -123,10 +117,8 @@ function closeUserMenu() {
             </button>
           </div>
         </div>
-        
-        <button v-else class="btn-primary text-sm" @click="goLogin">
-          登录
-        </button>
+
+        <button v-else class="btn-primary text-sm" @click="goLogin">登录</button>
       </div>
     </div>
   </header>

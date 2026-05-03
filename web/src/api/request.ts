@@ -1,10 +1,8 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import type { ApiResponse } from '@/types'
 
-/**
- * Axios请求封装类
- * 提供统一的HTTP请求处理
- */
+const TOKEN_KEY = 'notebook_token'
+
 class HttpClient {
   private instance: AxiosInstance
 
@@ -20,14 +18,10 @@ class HttpClient {
     this.setupInterceptors()
   }
 
-  /**
-   * 配置请求和响应拦截器
-   */
   private setupInterceptors() {
-    // 请求拦截器
     this.instance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem(TOKEN_KEY)
         if (token) {
           config.headers.Authorization = token
         }
@@ -38,20 +32,29 @@ class HttpClient {
       }
     )
 
-    // 响应拦截器
     this.instance.interceptors.response.use(
       (response: AxiosResponse<ApiResponse>) => {
         const { data } = response
+        
         if (data.code === 200) {
           return data as any
         }
+        
+        if (data.code === 401) {
+          localStorage.removeItem(TOKEN_KEY)
+          if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+            window.location.href = '/login'
+          }
+          return Promise.reject(new Error(data.msg || '请先登录'))
+        }
+        
         return Promise.reject(new Error(data.msg || '请求失败'))
       },
       (error) => {
         if (error.response) {
           const { status, data } = error.response
           if (status === 401) {
-            localStorage.removeItem('token')
+            localStorage.removeItem(TOKEN_KEY)
             if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
               window.location.href = '/login'
             }
@@ -76,30 +79,18 @@ class HttpClient {
     )
   }
 
-  /**
-   * GET请求
-   */
   get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     return this.instance.get(url, config)
   }
 
-  /**
-   * POST请求
-   */
   post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     return this.instance.post(url, data, config)
   }
 
-  /**
-   * PUT请求
-   */
   put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     return this.instance.put(url, data, config)
   }
 
-  /**
-   * DELETE请求
-   */
   delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     return this.instance.delete(url, config)
   }

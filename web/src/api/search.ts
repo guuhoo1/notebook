@@ -15,13 +15,15 @@ export const searchApi = {
   /**
    * 高级搜索
    */
-  advancedSearch(params: PageQuery & {
-    keyword?: string
-    categoryId?: number
-    tagId?: number
-    startDate?: string
-    endDate?: string
-  }) {
+  advancedSearch(
+    params: PageQuery & {
+      keyword?: string
+      categoryId?: number
+      tagId?: number
+      startDate?: string
+      endDate?: string
+    }
+  ) {
     return http.post<PageResult<NoteListItem>>('/search/advanced', params)
   },
 }

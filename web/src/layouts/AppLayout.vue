@@ -12,7 +12,10 @@ const authStore = useAuthStore()
     <TopNav />
     <div class="flex pt-16">
       <Sidebar />
-      <main class="flex-1 min-h-[calc(100vh-64px)]" :class="{ 'md:ml-60': authStore.isAuthenticated }">
+      <main
+        class="flex-1 min-h-[calc(100vh-64px)]"
+        :class="{ 'md:ml-60': authStore.isAuthenticated }"
+      >
         <RouterView />
       </main>
     </div>

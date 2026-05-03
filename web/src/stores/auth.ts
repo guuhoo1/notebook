@@ -3,25 +3,31 @@ import { ref, computed } from 'vue'
 import { authApi } from '@/api'
 import type { User, LoginParams, RegisterParams } from '@/types'
 
-/**
- * 认证状态管理Store
- */
+const TOKEN_KEY = 'notebook_token'
+
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('token'))
+  const token = ref<string | null>(localStorage.getItem(TOKEN_KEY))
   const user = ref<User | null>(null)
 
   const isAuthenticated = computed(() => !!token.value)
 
-  /**
-   * 用户登录
-   */
+  function setToken(newToken: string) {
+    token.value = newToken
+    localStorage.setItem(TOKEN_KEY, newToken)
+  }
+
+  function clearAuth() {
+    token.value = null
+    user.value = null
+    localStorage.removeItem(TOKEN_KEY)
+  }
+
   async function login(params: LoginParams) {
     try {
       const res = await authApi.login(params)
       if (res.code === 200 && res.data) {
-        token.value = res.data.token
+        setToken(res.data.token)
         user.value = res.data.user
-        localStorage.setItem('token', res.data.token)
       }
       return res
     } catch (error: any) {
@@ -30,16 +36,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 用户注册
-   */
   async function register(params: RegisterParams) {
     try {
       const res = await authApi.register(params)
       if (res.code === 200 && res.data) {
-        token.value = res.data.token
+        setToken(res.data.token)
         user.value = res.data.user
-        localStorage.setItem('token', res.data.token)
       }
       return res
     } catch (error: any) {
@@ -48,9 +50,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 用户登出
-   */
   async function logout() {
     try {
       await authApi.logout()
@@ -61,42 +60,26 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 获取用户信息
-   */
-  async function fetchUserInfo() {
-    if (!token.value) return null
-    
+  async function fetchUserInfo(): Promise<{ success: boolean; tokenInvalid?: boolean }> {
+    if (!token.value) {
+      return { success: false, tokenInvalid: true }
+    }
+
     try {
       const res = await authApi.getUserInfo()
       if (res.code === 200 && res.data) {
         user.value = res.data
-        return res
-      } else {
-        clearAuth()
-        return null
+        return { success: true }
       }
-    } catch {
-      clearAuth()
-      return null
+      return { success: false }
+    } catch (error: any) {
+      if (error.message === '请先登录') {
+        clearAuth()
+        return { success: false, tokenInvalid: true }
+      }
+      console.error('获取用户信息失败:', error.message)
+      return { success: false }
     }
-  }
-
-  /**
-   * 设置Token
-   */
-  function setToken(newToken: string) {
-    token.value = newToken
-    localStorage.setItem('token', newToken)
-  }
-
-  /**
-   * 清除认证信息
-   */
-  function clearAuth() {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('token')
   }
 
   return {
@@ -110,9 +93,4 @@ export const useAuthStore = defineStore('auth', () => {
     setToken,
     clearAuth,
   }
-}, {
-  persist: {
-    key: 'auth-store',
-    paths: ['token'],
-  },
 })
