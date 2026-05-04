@@ -60,4 +60,25 @@ export const noteApi = {
   move(id: number, categoryId: number | null) {
     return http.put<void>(`/note/${id}/move`, { categoryId })
   },
+
+  /**
+   * 设置笔记分享状态
+   */
+  setShare(id: number, data: { isPublic: number }) {
+    return http.post<Note>(`/note/${id}/share`, data)
+  },
+
+  /**
+   * 获取笔记分享信息
+   */
+  getShareInfo(id: number) {
+    return http.get<{ isPublic: number; shareUrl: string; shareViewCount: number }>(`/note/${id}/share`)
+  },
+
+  /**
+   * 取消笔记分享
+   */
+  cancelShare(id: number) {
+    return http.delete<void>(`/note/${id}/share`)
+  },
 }

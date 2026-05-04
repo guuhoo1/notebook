@@ -7,6 +7,7 @@ import com.notebook.dto.NoteArchiveDTO;
 import com.notebook.dto.NoteDTO;
 import com.notebook.dto.NoteMoveDTO;
 import com.notebook.dto.NotePinDTO;
+import com.notebook.dto.NoteShareDTO;
 import com.notebook.entity.Note;
 import com.notebook.entity.Tag;
 import com.notebook.service.NoteService;
@@ -69,5 +70,39 @@ public class NoteController {
     @GetMapping("/{id}/tags")
     public R<List<Tag>> getNoteTags(@PathVariable Long id) {
         return noteService.getNoteTags(id);
+    }
+
+    /**
+     * 设置笔记分享状态
+     *
+     * @param id 笔记ID
+     * @param dto 分享设置
+     * @return 分享结果
+     */
+    @PostMapping("/{id}/share")
+    public R<Note> setShare(@PathVariable Long id, @RequestBody NoteShareDTO dto) {
+        return noteService.setShare(id, dto.getIsPublic());
+    }
+
+    /**
+     * 取消笔记分享
+     *
+     * @param id 笔记ID
+     * @return 操作结果
+     */
+    @DeleteMapping("/{id}/share")
+    public R<Void> cancelShare(@PathVariable Long id) {
+        return noteService.cancelShare(id);
+    }
+
+    /**
+     * 获取分享链接信息
+     *
+     * @param id 笔记ID
+     * @return 分享链接信息
+     */
+    @GetMapping("/{id}/share")
+    public R<java.util.Map<String, Object>> getShareInfo(@PathVariable Long id) {
+        return noteService.getShareInfo(id);
     }
 }

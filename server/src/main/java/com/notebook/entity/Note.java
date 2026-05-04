@@ -67,6 +67,26 @@ public class Note implements Serializable {
     private Integer isPinned;
 
     /**
+     * 是否公开分享（0否，1是）
+     */
+    private Integer isPublic;
+
+    /**
+     * 分享访问码
+     */
+    private String shareCode;
+
+    /**
+     * 分享过期时间
+     */
+    private LocalDateTime shareExpireTime;
+
+    /**
+     * 分享浏览次数
+     */
+    private Integer shareViewCount;
+
+    /**
      * 浏览次数
      */
     private Integer viewCount;
@@ -170,6 +190,38 @@ public class Note implements Serializable {
 
     public void setIsPinned(Integer isPinned) {
         this.isPinned = isPinned;
+    }
+
+    public Integer getIsPublic() {
+        return isPublic;
+    }
+
+    public void setIsPublic(Integer isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    public String getShareCode() {
+        return shareCode;
+    }
+
+    public void setShareCode(String shareCode) {
+        this.shareCode = shareCode;
+    }
+
+    public LocalDateTime getShareExpireTime() {
+        return shareExpireTime;
+    }
+
+    public void setShareExpireTime(LocalDateTime shareExpireTime) {
+        this.shareExpireTime = shareExpireTime;
+    }
+
+    public Integer getShareViewCount() {
+        return shareViewCount;
+    }
+
+    public void setShareViewCount(Integer shareViewCount) {
+        this.shareViewCount = shareViewCount;
     }
 
     public Integer getViewCount() {

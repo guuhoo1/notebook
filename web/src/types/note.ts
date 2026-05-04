@@ -21,6 +21,10 @@ export interface Note {
   summary: string | null
   status: NoteStatus
   isPinned: number
+  isPublic: number
+  shareCode: string | null
+  shareExpireTime: string | null
+  shareViewCount: number
   viewCount: number
   createTime: string
   updateTime: string

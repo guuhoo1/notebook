@@ -15,8 +15,12 @@ import com.notebook.mapper.TagMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class NoteService {
@@ -263,5 +267,115 @@ public class NoteService {
             return text.substring(0, 200) + "...";
         }
         return text;
+    }
+
+    private static final int MAX_SHARE_COUNT = 10;
+    private static final int MAX_DAILY_SHARE = 5;
+
+    public R<Note> setShare(Long id, Integer isPublic) {
+        Long userId = StpUtil.getLoginIdAsLong();
+
+        Note note = noteMapper.selectById(id);
+        if (note == null || !note.getUserId().equals(userId)) {
+            return R.fail("笔记不存在");
+        }
+
+        if (isPublic == 1) {
+            LambdaQueryWrapper<Note> shareCountWrapper = new LambdaQueryWrapper<>();
+            shareCountWrapper.eq(Note::getUserId, userId).eq(Note::getIsPublic, 1);
+            long shareCount = noteMapper.selectCount(shareCountWrapper);
+            if (shareCount >= MAX_SHARE_COUNT) {
+                return R.fail("最多只能分享" + MAX_SHARE_COUNT + "篇笔记");
+            }
+
+            if (note.getIsPublic() == null || note.getIsPublic() != 1) {
+                String shareCode = generateShareCode();
+                while (isShareCodeExists(shareCode)) {
+                    shareCode = generateShareCode();
+                }
+                note.setShareCode(shareCode);
+                note.setShareExpireTime(LocalDateTime.now().plusDays(30));
+                note.setShareViewCount(0);
+            }
+            note.setIsPublic(1);
+        } else {
+            note.setIsPublic(0);
+        }
+
+        noteMapper.updateById(note);
+        return R.ok(note).message(isPublic == 1 ? "分享成功" : "已取消分享");
+    }
+
+    public R<Void> cancelShare(Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
+
+        Note note = noteMapper.selectById(id);
+        if (note == null || !note.getUserId().equals(userId)) {
+            return R.fail("笔记不存在");
+        }
+
+        note.setIsPublic(0);
+        note.setShareCode(null);
+        note.setShareExpireTime(null);
+        noteMapper.updateById(note);
+
+        return R.<Void>ok().message("已取消分享");
+    }
+
+    public R<Map<String, Object>> getShareInfo(Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
+
+        Note note = noteMapper.selectById(id);
+        if (note == null || !note.getUserId().equals(userId)) {
+            return R.fail("笔记不存在");
+        }
+
+        Map<String, Object> info = new HashMap<>();
+        info.put("isPublic", note.getIsPublic());
+        info.put("shareCode", note.getShareCode());
+        info.put("shareUrl", note.getIsPublic() == 1 && note.getShareCode() != null 
+                ? "/share/" + note.getShareCode() 
+                : null);
+        info.put("shareExpireTime", note.getShareExpireTime());
+        info.put("shareViewCount", note.getShareViewCount());
+
+        return R.ok(info);
+    }
+
+    public R<Note> viewShare(String shareCode) {
+        LambdaQueryWrapper<Note> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Note::getShareCode, shareCode)
+                .eq(Note::getIsPublic, 1)
+                .eq(Note::getStatus, 1)
+                .eq(Note::getDeleted, 0);
+
+        Note note = noteMapper.selectOne(wrapper);
+
+        if (note == null) {
+            return R.fail("分享链接无效或已过期");
+        }
+
+        if (note.getShareExpireTime() != null && note.getShareExpireTime().isBefore(LocalDateTime.now())) {
+            note.setIsPublic(0);
+            note.setShareCode(null);
+            note.setShareExpireTime(null);
+            noteMapper.updateById(note);
+            return R.fail("分享链接已过期");
+        }
+
+        note.setShareViewCount(note.getShareViewCount() != null ? note.getShareViewCount() + 1 : 1);
+        noteMapper.updateById(note);
+
+        return R.ok(note);
+    }
+
+    private String generateShareCode() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+    }
+
+    private boolean isShareCodeExists(String shareCode) {
+        LambdaQueryWrapper<Note> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Note::getShareCode, shareCode);
+        return noteMapper.selectCount(wrapper) > 0;
     }
 }

@@ -16,6 +16,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false, title: '注册' },
   },
   {
+    path: '/share/:shareCode',
+    name: 'ShareNote',
+    component: () => import('@/views/ShareNote.vue'),
+    meta: { requiresAuth: false, title: '分享笔记' },
+  },
+  {
     path: '/',
     name: 'Layout',
     component: () => import('@/layouts/AppLayout.vue'),

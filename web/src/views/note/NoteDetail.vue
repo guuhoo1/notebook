@@ -3,7 +3,8 @@ import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNoteStore } from '@/stores'
 import { MdPreview } from 'md-editor-v3'
-import 'md-editor-v3/lib/preview.css';
+import 'md-editor-v3/lib/preview.css'
+import { noteApi } from '@/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -12,6 +13,13 @@ const noteStore = useNoteStore()
 const noteId = computed(() => Number(route.params.id))
 const note = computed(() => noteStore.currentNote)
 const loading = computed(() => noteStore.loading)
+const shareInfo = ref({
+  isPublic: 0,
+  shareUrl: '',
+  shareViewCount: 0
+})
+const showShareModal = ref(false)
+const copied = ref(false)
 
 function goBack() {
   router.back()
@@ -47,6 +55,52 @@ async function handleDelete() {
   }
 }
 
+async function fetchShareInfo() {
+  const res = await noteApi.getShareInfo(noteId.value)
+  if (res.code === 200 && res.data) {
+    shareInfo.value = {
+      isPublic: res.data.isPublic || 0,
+      shareUrl: res.data.shareUrl ? window.location.origin + res.data.shareUrl : '',
+      shareViewCount: res.data.shareViewCount || 0
+    }
+  }
+}
+
+async function toggleShare() {
+  const newStatus = shareInfo.value.isPublic === 1 ? 0 : 1
+  const res = await noteApi.setShare(noteId.value, { isPublic: newStatus })
+  if (res.code === 200) {
+    shareInfo.value.isPublic = newStatus
+    if (newStatus === 1 && res.data?.shareCode) {
+      shareInfo.value.shareUrl = window.location.origin + '/share/' + res.data.shareCode
+    } else {
+      shareInfo.value.shareUrl = ''
+    }
+  }
+}
+
+async function copyShareUrl() {
+  if (!shareInfo.value.shareUrl) return
+  try {
+    await navigator.clipboard.writeText(shareInfo.value.shareUrl)
+    copied.value = true
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
+  } catch (e) {
+    const textarea = document.createElement('textarea')
+    textarea.value = shareInfo.value.shareUrl
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+    copied.value = true
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
+  }
+}
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleString('zh-CN', {
     year: 'numeric',
@@ -72,6 +126,7 @@ function scrollToTop() {
 
 onMounted(() => {
   noteStore.fetchNoteDetail(noteId.value)
+  fetchShareInfo()
   window.addEventListener('scroll', handleScroll)
 })
 
@@ -128,6 +183,13 @@ onUnmounted(() => {
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+          <button class="toolbar-btn" :class="shareInfo.isPublic === 1 ? 'text-green-600' : 'text-body'" 
+            @click="showShareModal = true" title="分享">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </button>
         </div>
@@ -197,6 +259,59 @@ onUnmounted(() => {
         </svg>
       </button>
     </Transition>
+
+    <!-- 分享模态框 -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showShareModal" class="modal-overlay" @click.self="showShareModal = false">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title">分享笔记</h3>
+              <button class="modal-close" @click="showShareModal = false">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="share-switch">
+                <span class="switch-label">公开分享</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" :checked="shareInfo.isPublic === 1" @change="toggleShare" />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+              <div v-if="shareInfo.isPublic === 1" class="share-url-section">
+                <p class="section-desc">分享链接已生成，任何人都可以通过此链接查看笔记</p>
+                <div class="url-input-group">
+                  <input type="text" :value="shareInfo.shareUrl" readonly class="url-input" />
+                  <button class="copy-btn" @click="copyShareUrl">
+                    <svg v-if="!copied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {{ copied ? '已复制' : '复制' }}
+                  </button>
+                </div>
+                <div class="share-stats">
+                  <span class="stat-item">浏览次数: {{ shareInfo.shareViewCount }}</span>
+                  <span class="stat-item">有效期: 30天</span>
+                </div>
+              </div>
+              <div v-else class="share-disabled">
+                <p class="disabled-desc">开启分享后，将生成唯一分享链接</p>
+                <p class="disabled-tip">最多可分享10篇笔记</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-secondary" @click="showShareModal = false">关闭</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -588,5 +703,219 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(-20px);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.modal-close:hover {
+  background-color: #f3f4f6;
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.share-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.switch-label {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  transition: background-color 0.2s;
+  border-radius: 9999px;
+}
+
+.toggle-track:before {
+  position: absolute;
+  content: '';
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: transform 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background-color: #22c55e;
+}
+
+.toggle-switch input:checked + .toggle-track:before {
+  transform: translateX(20px);
+}
+
+.share-url-section {
+  margin-top: 1rem;
+}
+
+.section-desc {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.url-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.url-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #374151;
+  background-color: #f9fafb;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-btn {
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: background-color 0.2s;
+}
+
+.copy-btn:hover {
+  background-color: #2563eb;
+}
+
+.share-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.stat-item {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.share-disabled {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.375rem;
+}
+
+.disabled-desc {
+  font-size: 0.875rem;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.disabled-tip {
+  font-size: 0.75rem;
+  color: #9ca3af;
 }
 </style>
