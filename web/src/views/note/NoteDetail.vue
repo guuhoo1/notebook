@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNoteStore } from '@/stores'
 import { MdPreview } from 'md-editor-v3'
@@ -57,8 +57,26 @@ function formatDate(dateStr: string) {
   })
 }
 
+const showBackTop = ref(false)
+
+function handleScroll() {
+  showBackTop.value = window.scrollY > 300
+}
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
 onMounted(() => {
   noteStore.fetchNoteDetail(noteId.value)
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -166,6 +184,19 @@ onMounted(() => {
         <MdPreview :modelValue="note.mdContent" class="p-0" />
       </article>
     </template>
+
+    <Transition name="fade">
+      <button
+        v-if="showBackTop"
+        class="back-top-btn"
+        @click="scrollToTop"
+        title="返回顶部"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </button>
+    </Transition>
   </div>
 </template>
 
@@ -511,5 +542,51 @@ onMounted(() => {
 :deep(.md-editor-preview-wrapper) {
   padding: 0;
   margin: 0;
+}
+
+.back-top-btn {
+  position: fixed;
+  right: 1rem;
+  bottom: 3rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.back-top-btn:hover {
+  background-color: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.back-top-btn:active {
+  transform: translateY(0);
+}
+
+@media (min-width: 768px) {
+  .back-top-btn {
+    right: calc((100% - 56rem) / 2 + 1rem);
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
