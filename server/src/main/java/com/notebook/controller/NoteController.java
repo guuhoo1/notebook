@@ -36,14 +36,14 @@ public class NoteController {
 
     @PostMapping
     public R<Note> create(@RequestBody NoteDTO dto) {
-        return noteService.create(dto.getTitle(), dto.getContent(), dto.getSummary(), 
-                dto.getCategoryId(), dto.getTagIds(), dto.getStatus());
+        return noteService.create(dto.getTitle(), dto.getContent(), dto.getMdContent(), 
+                dto.getHtmlContent(), dto.getSummary(), dto.getCategoryId(), dto.getTagIds(), dto.getStatus());
     }
 
     @PutMapping("/{id}")
     public R<Note> update(@PathVariable Long id, @RequestBody NoteDTO dto) {
-        return noteService.update(id, dto.getTitle(), dto.getContent(), dto.getSummary(),
-                dto.getCategoryId(), dto.getTagIds(), dto.getStatus());
+        return noteService.update(id, dto.getTitle(), dto.getContent(), dto.getMdContent(),
+                dto.getHtmlContent(), dto.getSummary(), dto.getCategoryId(), dto.getTagIds(), dto.getStatus());
     }
 
     @DeleteMapping("/{id}")

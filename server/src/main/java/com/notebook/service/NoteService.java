@@ -83,7 +83,7 @@ public class NoteService {
     }
 
     @Transactional
-    public R<Note> create(String title, String content, String summary, Long categoryId, List<Long> tagIds, Integer status) {
+    public R<Note> create(String title, String content, String mdContent, String htmlContent, String summary, Long categoryId, List<Long> tagIds, Integer status) {
         if (title == null || title.trim().isEmpty()) {
             return R.fail("标题不能为空");
         }
@@ -94,7 +94,9 @@ public class NoteService {
         note.setUserId(userId);
         note.setTitle(title.trim());
         note.setContent(content);
-        note.setSummary(summary != null ? summary : extractSummary(content));
+        note.setMdContent(mdContent);
+        note.setHtmlContent(htmlContent);
+        note.setSummary(summary != null ? summary : extractSummary(htmlContent != null ? htmlContent : content));
         note.setCategoryId(categoryId);
         note.setStatus(status != null ? status : 1);
         note.setIsPinned(0);
@@ -110,7 +112,7 @@ public class NoteService {
     }
 
     @Transactional
-    public R<Note> update(Long id, String title, String content, String summary, Long categoryId, List<Long> tagIds, Integer status) {
+    public R<Note> update(Long id, String title, String content, String mdContent, String htmlContent, String summary, Long categoryId, List<Long> tagIds, Integer status) {
         Long userId = StpUtil.getLoginIdAsLong();
 
         Note note = noteMapper.selectById(id);
@@ -124,8 +126,16 @@ public class NoteService {
         if (content != null) {
             note.setContent(content);
         }
+        if (mdContent != null) {
+            note.setMdContent(mdContent);
+        }
+        if (htmlContent != null) {
+            note.setHtmlContent(htmlContent);
+        }
         if (summary != null) {
             note.setSummary(summary);
+        } else if (htmlContent != null) {
+            note.setSummary(extractSummary(htmlContent));
         } else if (content != null) {
             note.setSummary(extractSummary(content));
         }

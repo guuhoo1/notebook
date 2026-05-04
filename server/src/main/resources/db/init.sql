@@ -72,6 +72,8 @@ CREATE TABLE `note` (
   `category_id` BIGINT DEFAULT NULL COMMENT '分类ID',
   `title` VARCHAR(200) NOT NULL COMMENT '笔记标题',
   `content` MEDIUMTEXT COMMENT '笔记内容(富文本HTML)',
+  `md_content` MEDIUMTEXT COMMENT 'Markdown原始内容(用于编辑)',
+  `html_content` MEDIUMTEXT COMMENT '编译后的HTML内容(用于预览)',
   `summary` VARCHAR(500) DEFAULT NULL COMMENT '笔记摘要(纯文本)',
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态(0草稿,1正常,2归档)',
   `is_pinned` TINYINT NOT NULL DEFAULT 0 COMMENT '是否置顶(0否,1是)',

@@ -37,9 +37,19 @@ public class Note implements Serializable {
     private String title;
 
     /**
-     * 笔记内容（富文本HTML）
+     * 笔记内容（Markdown格式）
      */
     private String content;
+
+    /**
+     * Markdown原始内容（用于编辑）
+     */
+    private String mdContent;
+
+    /**
+     * 编译后的HTML内容（用于预览）
+     */
+    private String htmlContent;
 
     /**
      * 笔记摘要（纯文本）
@@ -120,6 +130,22 @@ public class Note implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getMdContent() {
+        return mdContent;
+    }
+
+    public void setMdContent(String mdContent) {
+        this.mdContent = mdContent;
+    }
+
+    public String getHtmlContent() {
+        return htmlContent;
+    }
+
+    public void setHtmlContent(String htmlContent) {
+        this.htmlContent = htmlContent;
     }
 
     public String getSummary() {

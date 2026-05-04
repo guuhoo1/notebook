@@ -23,6 +23,28 @@ const md: MarkdownIt = markdownit({
 
 md.linkify.set({ fuzzyLink: true })
 
+const taskListRegex = /^\[([xX\s])\]\s*/
+
+md.renderer.rules.list_item_open = function(tokens, idx, options, env, self) {
+  const token = tokens[idx]
+  let checkbox = ''
+  
+  const nextToken = tokens[idx + 1]
+  if (nextToken && nextToken.type === 'inline') {
+    const content = nextToken.content
+    const match = content.match(taskListRegex)
+    if (match) {
+      const isChecked = match[1] !== ' '
+      nextToken.content = content.slice(match[0].length)
+      token.attrPush(['class', 'task-list-item'])
+      checkbox = `<input type="checkbox" class="task-list-item-checkbox" disabled ${isChecked ? 'checked' : ''} />`
+    }
+  }
+  
+  const result = self.renderToken(tokens, idx, options)
+  return result.replace(/(<li[^>]*>)/, `$1${checkbox}`)
+}
+
 const defaultRender = md.renderer.rules.link_open || function(tokens, idx, options, _env, self) {
   return self.renderToken(tokens, idx, options)
 }

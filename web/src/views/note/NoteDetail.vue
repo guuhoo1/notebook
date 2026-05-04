@@ -176,7 +176,7 @@ onMounted(() => {
 
         <div
           class="markdown-content"
-          v-html="note.content ? parseMarkdown(note.content) : '<p class=\'text-muted\'>暂无内容</p>'"
+          v-html="note.htmlContent || note.content || '<p class=\'text-muted\'>暂无内容</p>'"
         ></div>
       </article>
     </template>

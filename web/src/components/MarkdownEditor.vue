@@ -4,6 +4,7 @@ import { MdEditor, config } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import hljs from 'highlight.js'
 import { useEditorHistory, useAutoSave, useEditorLayout } from '@/composables/useEditor'
+import { parseMarkdown } from '@/utils/markdown'
 
 const props = defineProps<{
   modelValue: string
@@ -22,6 +23,7 @@ const {
 
 const editorRef = ref()
 const localValue = ref(props.modelValue)
+const compiledHtml = ref('')
 
 const history = useEditorHistory(props.modelValue)
 
@@ -59,7 +61,19 @@ function scheduleHistoryPush(content: string) {
 function onGetHtml(html: string) {
   const end = performance.now()
   renderTime.value = end - startTime.value
+  compiledHtml.value = html
 }
+
+function getCompiledHtml(): string {
+  if (compiledHtml.value) {
+    return compiledHtml.value
+  }
+  return parseMarkdown(localValue.value)
+}
+
+defineExpose({
+  getCompiledHtml
+})
 
 function onUploadImg(files: FileList, callback: (urls: string[]) => void) {
   const fileList: File[] = Array.from(files)
@@ -221,7 +235,7 @@ function onSaved() {
         auto-scroll="true"
         :preview="editorMode"
         @on-change="handleChange"
-        @on-get-html="onGetHtml"
+        @on-html-changed="onGetHtml"
         @on-upload-img="onUploadImg"
         @on-save="onSaved"
         @on-focus="onFocus"

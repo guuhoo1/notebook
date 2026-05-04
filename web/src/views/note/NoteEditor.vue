@@ -22,6 +22,7 @@ const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
 const markdownMode = ref(false)
+const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null)
 
 // 宽度预设配置
 const WIDTH_PRESETS = {
@@ -80,9 +81,13 @@ async function handleSave(asDraft = false) {
   saving.value = true
   errorMessage.value = ''
 
+  const htmlContent = editorRef.value?.getCompiledHtml() || ''
+
   const params: NoteParams = {
     title: title.value.trim(),
     content: content.value,
+    mdContent: content.value,
+    htmlContent: htmlContent,
     categoryId: categoryId.value || undefined,
     status: asDraft ? 0 : 1,
   }
@@ -211,7 +216,7 @@ onMounted(() => {
 
         <!-- 编辑器区域 -->
         <div class="flex-1 overflow-hidden min-h-0">
-          <MarkdownEditor v-model="content" v-model:markdown-mode="markdownMode" />
+          <MarkdownEditor ref="editorRef" v-model="content" v-model:markdown-mode="markdownMode" />
         </div>
       </div>
     </template>

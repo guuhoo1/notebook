@@ -16,6 +16,8 @@ export interface Note {
   categoryId: number | null
   title: string
   content: string | null
+  mdContent: string | null
+  htmlContent: string | null
   summary: string | null
   status: NoteStatus
   isPinned: number
@@ -56,6 +58,8 @@ export interface NoteDetail extends Note {
 export interface NoteParams {
   title: string
   content?: string
+  mdContent?: string
+  htmlContent?: string
   categoryId?: number
   tagIds?: number[]
   status?: NoteStatus

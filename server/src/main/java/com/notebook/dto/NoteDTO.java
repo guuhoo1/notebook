@@ -5,6 +5,8 @@ import java.util.List;
 public class NoteDTO {
     private String title;
     private String content;
+    private String mdContent;
+    private String htmlContent;
     private String summary;
     private Long categoryId;
     private List<Long> tagIds;
@@ -27,6 +29,22 @@ public class NoteDTO {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getMdContent() {
+        return mdContent;
+    }
+
+    public void setMdContent(String mdContent) {
+        this.mdContent = mdContent;
+    }
+
+    public String getHtmlContent() {
+        return htmlContent;
+    }
+
+    public void setHtmlContent(String htmlContent) {
+        this.htmlContent = htmlContent;
     }
 
     public String getSummary() {
