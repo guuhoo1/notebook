@@ -2,7 +2,8 @@
 import { onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNoteStore } from '@/stores'
-import { parseMarkdown } from '@/utils/markdown'
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css';
 
 const router = useRouter()
 const route = useRoute()
@@ -68,18 +69,9 @@ onMounted(() => {
     </div>
 
     <div v-else-if="!note" class="text-center py-12">
-      <svg
-        class="w-16 h-16 mx-auto text-hairline mb-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.5"
-          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
+      <svg class="w-16 h-16 mx-auto text-hairline mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <p class="text-body text-muted">笔记不存在</p>
       <button class="btn-secondary mt-4" @click="goBack">返回</button>
@@ -93,30 +85,31 @@ onMounted(() => {
           </svg>
         </button>
         <div class="toolbar-actions">
-          <button
-            class="toolbar-btn"
-            :class="note.isPinned === 1 ? 'text-signature-coral' : 'text-body'"
-            @click="handlePin"
-            :title="note.isPinned === 1 ? '取消置顶' : '置顶'"
-          >
+          <button class="toolbar-btn" :class="note.isPinned === 1 ? 'text-signature-coral' : 'text-body'"
+            @click="handlePin" :title="note.isPinned === 1 ? '取消置顶' : '置顶'">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path v-if="note.isPinned === 1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              <path v-if="note.isPinned === 1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 15l7-7 7 7" />
+              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </button>
           <button class="toolbar-btn text-body" @click="handleArchive" :title="note.status === 2 ? '恢复' : '归档'">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
             </svg>
           </button>
           <button class="toolbar-btn text-body" @click="goEdit" title="编辑">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </button>
           <button class="toolbar-btn text-red-600" @click="handleDelete" title="删除">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
         </div>
@@ -128,30 +121,30 @@ onMounted(() => {
           <div class="note-meta">
             <div class="meta-item">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>{{ formatDate(note.createTime) }}</span>
             </div>
             <div class="meta-item">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               <span>{{ formatDate(note.updateTime) }}</span>
             </div>
             <div class="meta-item">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
               <span>{{ note.viewCount }} 次浏览</span>
             </div>
           </div>
           <div class="note-badges">
-            <span
-              v-if="note.categoryName"
-              class="badge"
-              :style="{ backgroundColor: note.categoryColor || '#6b7280' }"
-            >
+            <span v-if="note.categoryName" class="badge" :style="{ backgroundColor: note.categoryColor || '#6b7280' }">
               {{ note.categoryName }}
             </span>
             <span v-if="note.isPinned === 1" class="badge badge-pinned">置顶</span>
@@ -159,25 +152,18 @@ onMounted(() => {
             <span v-if="note.status === 2" class="badge badge-archived">已归档</span>
           </div>
           <div v-if="note.tags && note.tags.length > 0" class="note-tags">
-            <span
-              v-for="tag in note.tags"
-              :key="tag.id"
-              class="tag"
-              :style="{
-                backgroundColor: tag.color + '20',
-                color: tag.color,
-                border: `1px solid ${tag.color}`,
-              }"
-            >
+            <span v-for="tag in note.tags" :key="tag.id" class="tag" :style="{
+              backgroundColor: tag.color + '20',
+              color: tag.color,
+              border: `1px solid ${tag.color}`,
+            }">
               #{{ tag.name }}
             </span>
           </div>
         </header>
 
-        <div
-          class="markdown-content"
-          v-html="note.htmlContent || note.content || '<p class=\'text-muted\'>暂无内容</p>'"
-        ></div>
+        <!-- <div class="markdown-content" v-html="getRenderedContent()"></div> -->
+        <MdPreview :modelValue="note.mdContent" class="p-0" />
       </article>
     </template>
   </div>
@@ -244,8 +230,8 @@ onMounted(() => {
 }
 
 .note-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
+  /* margin-bottom: 1.5rem; */
+  /* padding-bottom: 1.5rem; */
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -520,5 +506,10 @@ onMounted(() => {
     padding: 0.375rem 0.5rem;
     font-size: 0.75rem;
   }
+}
+
+:deep(.md-editor-preview-wrapper) {
+  padding: 0;
+  margin: 0;
 }
 </style>
