@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
-import { MdEditor, config } from 'md-editor-v3'
+import { MdEditor, config, type ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import hljs from 'highlight.js'
 import { useEditorHistory, useAutoSave, useEditorLayout } from '@/composables/useEditor'
@@ -17,8 +17,7 @@ const emit = defineEmits<{
 
 const {
   layoutMode,
-  setLayoutMode,
-  splitRatio
+  setLayoutMode
 } = useEditorLayout()
 
 const editorRef = ref()
@@ -92,18 +91,18 @@ function onUploadImg(files: FileList, callback: (urls: string[]) => void) {
   })
 }
 
-const editorMode = computed(() => {
+const previewMode = computed(() => {
   switch (layoutMode.value) {
     case 'edit':
-      return 'edit' as const
+      return false
     case 'preview':
-      return 'preview' as const
+      return true
     default:
-      return 'editable' as const
+      return undefined
   }
 })
 
-const toolbars = [
+const toolbars: ToolbarNames[] = [
   'bold',
   'underline',
   'italic',
@@ -212,7 +211,6 @@ function onSaved() {
         v-model="localValue"
         editor-id="notebook-editor"
         :toolbars="toolbars"
-        :toolbars-exclude="['']"
         theme="light"
         preview-theme="vuepress"
         language="zh-CN"
@@ -233,7 +231,7 @@ function onSaved() {
         code-style-insert="true"
         :auto-split="layoutMode === 'split'"
         auto-scroll="true"
-        :preview="editorMode"
+        :preview="previewMode"
         @on-change="handleChange"
         @on-html-changed="onGetHtml"
         @on-upload-img="onUploadImg"
@@ -249,7 +247,7 @@ function onSaved() {
         <span>Markdown</span>
         <span v-if="autoSave.hasUnsavedChanges" class="text-amber-600">未保存</span>
         <span v-else-if="autoSave.lastSaved" class="text-green-600">
-          已保存 {{ autoSave.lastSaved.toLocaleTimeString() }}
+          已保存 {{ autoSave.lastSaved.value?.toLocaleTimeString() }}
         </span>
       </div>
       <div class="flex items-center gap-3">

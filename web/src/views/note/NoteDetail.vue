@@ -181,7 +181,7 @@ onUnmounted(() => {
         </header>
 
         <!-- <div class="markdown-content" v-html="getRenderedContent()"></div> -->
-        <MdPreview :modelValue="note.mdContent" class="p-0" />
+        <MdPreview :modelValue="note.mdContent || ''" class="p-0" />
       </article>
     </template>
 

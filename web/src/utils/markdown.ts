@@ -25,7 +25,7 @@ md.linkify.set({ fuzzyLink: true })
 
 const taskListRegex = /^\[([xX\s])\]\s*/
 
-md.renderer.rules.list_item_open = function(tokens, idx, options, env, self) {
+md.renderer.rules.list_item_open = function(tokens, idx, options, _env, self) {
   const token = tokens[idx]
   let checkbox = ''
   
