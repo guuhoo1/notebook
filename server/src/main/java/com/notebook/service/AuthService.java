@@ -1,5 +1,6 @@
 package com.notebook.service;
 
+import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.notebook.common.R;
@@ -142,18 +143,17 @@ public class AuthService {
      * @return 用户信息
      */
     public R<User> getUserInfo() {
-        Object loginId = StpUtil.getLoginId();
-        if (loginId == null) {
-            return R.fail(401, "未登录");
+        try {
+            Long loginId = StpUtil.getLoginIdAsLong();
+            User user = userMapper.selectById(loginId);
+            if (user == null) {
+                return R.fail("用户不存在");
+            }
+            user.setPassword(null);
+            return R.ok(user);
+        } catch (NotLoginException e) {
+            return R.fail(401, "请先登录");
         }
-
-        User user = userMapper.selectById((Long) loginId);
-        if (user == null) {
-            return R.fail("用户不存在");
-        }
-
-        user.setPassword(null);
-        return R.ok(user);
     }
 
     /**

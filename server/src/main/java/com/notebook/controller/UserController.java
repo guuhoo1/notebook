@@ -6,6 +6,7 @@ import com.notebook.dto.UpdateUserDTO;
 import com.notebook.entity.User;
 import com.notebook.service.UserService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -43,7 +44,13 @@ public class UserController {
      */
     @PutMapping("/info")
     public R<User> updateUserInfo(@RequestBody UpdateUserDTO dto) {
-        return userService.updateUserInfo(dto.getNickname(), dto.getGender(), dto.getAvatar());
+        return userService.updateUserInfo(
+            dto.getNickname(),
+            dto.getGender(),
+            dto.getAvatar(),
+            dto.getEmail(),
+            dto.getPhone()
+        );
     }
 
     /**
@@ -55,5 +62,16 @@ public class UserController {
     @PutMapping("/password")
     public R<Void> updatePassword(@RequestBody UpdatePasswordDTO dto) {
         return userService.updatePassword(dto.getOldPassword(), dto.getNewPassword());
+    }
+
+    /**
+     * 上传头像
+     *
+     * @param file 头像文件
+     * @return 上传结果
+     */
+    @PostMapping("/avatar")
+    public R<User> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        return userService.uploadAvatar(file);
     }
 }

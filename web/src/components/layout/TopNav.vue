@@ -117,7 +117,7 @@ onUnmounted(() => {
             @click="toggleUserMenu"
           >
             <span v-if="authStore.user?.avatar" class="w-full h-full rounded-full overflow-hidden">
-              <img :src="authStore.user.avatar" alt="avatar" class="w-full h-full object-cover" />
+              <img :src="authStore.user.avatar.startsWith('/uploads/') ? '/api' + authStore.user.avatar : authStore.user.avatar" alt="avatar" class="w-full h-full object-cover" />
             </span>
             <span v-else class="text-on-dark text-sm font-medium">
               {{ authStore.user?.nickname?.charAt(0) || 'U' }}

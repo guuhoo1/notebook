@@ -20,6 +20,19 @@ export const userApi = {
   },
 
   /**
+   * 上传头像
+   */
+  uploadAvatar(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return http.post<User>('/user/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  },
+
+  /**
    * 获取用户设置
    */
   getSettings() {
