@@ -62,7 +62,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl mx-auto">
+  <div class="p-3 md:p-6 mx-auto max-w-4xl">
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
@@ -86,12 +86,12 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-3">
         <button
-          class="flex items-center gap-2 text-muted hover:text-ink transition-colors"
+          class="w-10 h-10 rounded-lg bg-surface-soft flex items-center justify-center hover:bg-surface-strong transition-colors"
           @click="goBack"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -99,15 +99,15 @@ onMounted(() => {
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          返回
         </button>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
           <button
-            class="btn-secondary px-3 py-1.5 text-sm"
-            :class="{ 'text-signature-coral': note.isPinned === 1 }"
+            class="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            :class="note.isPinned === 1 ? 'text-signature-coral hover:bg-surface-soft' : 'text-body hover:bg-surface-soft'"
             @click="handlePin"
+            :title="note.isPinned === 1 ? '取消置顶' : '置顶'"
           >
-            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 v-if="note.isPinned === 1"
                 stroke-linecap="round"
@@ -123,10 +123,13 @@ onMounted(() => {
                 d="M19 14l-7 7m0 0l-7-7m7 7V3"
               />
             </svg>
-            {{ note.isPinned === 1 ? '取消置顶' : '置顶' }}
           </button>
-          <button class="btn-secondary px-3 py-1.5 text-sm" @click="handleArchive">
-            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button 
+            class="w-9 h-9 rounded-lg flex items-center justify-center text-body hover:bg-surface-soft transition-colors"
+            @click="handleArchive"
+            :title="note.status === 2 ? '恢复' : '归档'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -134,10 +137,13 @@ onMounted(() => {
                 d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
               />
             </svg>
-            {{ note.status === 2 ? '恢复' : '归档' }}
           </button>
-          <button class="btn-secondary px-3 py-1.5 text-sm" @click="goEdit">
-            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button 
+            class="w-9 h-9 rounded-lg flex items-center justify-center text-body hover:bg-surface-soft transition-colors md:mr-2"
+            @click="goEdit"
+            title="编辑"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -145,13 +151,13 @@ onMounted(() => {
                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
               />
             </svg>
-            编辑
           </button>
           <button
-            class="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            class="w-9 h-9 rounded-lg flex items-center justify-center text-red-600 hover:bg-red-50 transition-colors"
             @click="handleDelete"
+            title="删除"
           >
-            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -159,12 +165,11 @@ onMounted(() => {
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
               />
             </svg>
-            删除
           </button>
         </div>
       </div>
 
-      <article class="bg-canvas border border-hairline rounded-lg p-8">
+      <article class="bg-canvas rounded-lg p-4 md:p-8">
         <header class="mb-6 pb-6 border-b border-hairline">
           <h1 class="text-display-md text-ink mb-4">{{ note.title }}</h1>
           <div class="flex flex-wrap items-center gap-4 text-body text-muted">

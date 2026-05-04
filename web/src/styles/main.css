@@ -3,8 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 14px;
+  }
+
   body {
     @apply bg-canvas text-body font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -18,33 +24,53 @@
   a:hover {
     @apply text-link-active;
   }
+
+  * {
+    box-sizing: border-box;
+  }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-on-primary px-6 py-3 rounded-lg font-medium;
-    @apply hover:bg-primary-active transition-all duration-200 transform hover:scale-[1.02];
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+    @apply bg-primary text-on-primary px-4 py-3 rounded-lg font-medium;
+    @apply hover:bg-primary-active transition-all duration-200;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
     @apply focus:outline-none focus:ring-2 focus:ring-info-border focus:ring-offset-2;
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
 
   .btn-secondary {
-    @apply bg-canvas text-ink px-6 py-3 rounded-lg font-medium;
+    @apply bg-canvas text-ink px-4 py-3 rounded-lg font-medium;
     @apply border border-hairline;
     @apply hover:bg-surface-soft transition-all duration-200;
     @apply focus:outline-none focus:ring-2 focus:ring-info-border focus:ring-offset-2;
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .btn-icon {
+    @apply p-3 rounded-lg bg-canvas border border-hairline;
+    @apply hover:bg-surface-soft transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-info-border;
+    @apply w-[44px] h-[44px] flex items-center justify-center;
   }
 
   .input-base {
-    @apply w-full h-11 px-4 bg-canvas border border-hairline rounded-md;
+    @apply w-full h-12 px-4 bg-canvas border border-hairline rounded-md;
     @apply text-body placeholder:text-border-strong;
     @apply focus:outline-none focus:border-info-border focus:ring-2 focus:ring-info-border/20;
     @apply transition-all duration-200;
+    @apply min-h-[44px];
   }
 
   .card {
     @apply bg-canvas border border-hairline rounded-md p-4;
     @apply hover:shadow-md transition-all duration-200;
+  }
+
+  .nav-item {
+    @apply px-3 py-2 rounded-lg;
+    @apply hover:bg-surface-soft transition-all duration-200;
+    @apply min-h-[44px] flex items-center;
   }
 }
 

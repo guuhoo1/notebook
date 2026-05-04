@@ -415,33 +415,33 @@ onUnmounted(() => {
 
 <template>
   <div ref="editorRef" class="markdown-editor h-full flex flex-col">
-    <div class="flex items-center justify-between px-3 py-1.5 border-b border-hairline bg-canvas">
-      <div class="flex items-center gap-1">
+    <div class="flex items-center justify-between px-3 py-2 border-b border-hairline bg-canvas overflow-x-auto">
+      <div class="flex items-center gap-1 flex-shrink-0">
         <template v-if="!isMarkdownMode">
           <button
-            class="p-1.5 rounded hover:bg-surface-soft transition-colors"
+            class="p-2 rounded hover:bg-surface-soft transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             title="标题 1"
             @click="editor?.chain().focus().toggleHeading({ level: 1 }).run()"
           >
             <span class="text-sm font-bold">H1</span>
           </button>
           <button
-            class="p-1.5 rounded hover:bg-surface-soft transition-colors"
+            class="p-2 rounded hover:bg-surface-soft transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             title="标题 2"
             @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()"
           >
             <span class="text-sm font-bold">H2</span>
           </button>
           <button
-            class="p-1.5 rounded hover:bg-surface-soft transition-colors"
+            class="p-2 rounded hover:bg-surface-soft transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             title="标题 3"
             @click="editor?.chain().focus().toggleHeading({ level: 3 }).run()"
           >
             <span class="text-sm font-bold">H3</span>
           </button>
-          <div class="w-px h-4 bg-hairline mx-1"></div>
+          <div class="hidden sm:block w-px h-4 bg-hairline mx-1"></div>
           <button
-            class="p-1.5 rounded hover:bg-surface-soft transition-colors"
+            class="p-2 rounded hover:bg-surface-soft transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             title="粗体 (Ctrl+B)"
             @click="editor?.chain().focus().toggleBold().run()"
           >
@@ -450,7 +450,7 @@ onUnmounted(() => {
             </svg>
           </button>
           <button
-            class="p-1.5 rounded hover:bg-surface-soft transition-colors"
+            class="p-2 rounded hover:bg-surface-soft transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             title="斜体 (Ctrl+I)"
             @click="editor?.chain().focus().toggleItalic().run()"
           >
@@ -459,7 +459,7 @@ onUnmounted(() => {
             </svg>
           </button>
           <button
-            class="p-1.5 rounded hover:bg-surface-soft transition-colors"
+            class="hidden sm:flex p-2 rounded hover:bg-surface-soft transition-colors min-h-[40px] min-w-[40px] items-center justify-center"
             title="删除线"
             @click="editor?.chain().focus().toggleStrike().run()"
           >
@@ -467,9 +467,9 @@ onUnmounted(() => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 10H7m10 4H7m5-8v12" />
             </svg>
           </button>
-          <div class="w-px h-4 bg-hairline mx-1"></div>
+          <div class="hidden sm:block w-px h-4 bg-hairline mx-1"></div>
           <button
-            class="p-1.5 rounded hover:bg-surface-soft transition-colors"
+            class="hidden sm:flex p-2 rounded hover:bg-surface-soft transition-colors min-h-[40px] min-w-[40px] items-center justify-center"
             title="无序列表"
             @click="editor?.chain().focus().toggleBulletList().run()"
           >

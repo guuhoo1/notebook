@@ -51,13 +51,14 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    try {
-      await authApi.logout()
-    } catch {
-      // 忽略登出错误
-    } finally {
-      clearAuth()
+    if (token.value) {
+      try {
+        await authApi.logout()
+      } catch (error) {
+        console.error('登出接口调用失败:', error)
+      }
     }
+    clearAuth()
   }
 
   async function fetchUserInfo(): Promise<{ success: boolean; tokenInvalid?: boolean }> {

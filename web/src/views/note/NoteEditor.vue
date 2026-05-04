@@ -121,20 +121,20 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4 mx-auto h-[calc(100vh-80px)] flex flex-col transition-all duration-300" :style="editorWidthStyle">
+  <div class="p-3 md:p-4 mx-auto h-[calc(100vh-64px)] flex flex-col transition-all duration-300" :style="editorWidthStyle">
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
 
     <template v-else>
       <!-- 顶部栏：返回、分类、宽度选择、保存按钮 -->
-      <div class="flex items-center justify-between mb-3 gap-3">
-        <div class="flex items-center gap-3">
+      <div class="flex items-center justify-between mb-3 gap-2 md:gap-3">
+        <div class="flex items-center gap-2 md:gap-3">
           <button
-            class="flex items-center gap-2 text-muted hover:text-ink transition-colors"
+            class="btn-icon"
             @click="goBack"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -142,13 +142,12 @@ onMounted(() => {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            返回
           </button>
           
           <!-- 分类选择（紧凑样式） -->
-          <div class="flex items-center gap-2">
+          <div class="hidden sm:flex items-center gap-2">
             <span class="text-sm text-muted">分类:</span>
-            <select v-model="categoryId" class="text-sm px-3 py-1.5 bg-canvas border border-hairline rounded-md text-ink focus:outline-none focus:ring-1 focus:ring-info-border focus:border-info-border">
+            <select v-model="categoryId" class="text-sm px-3 py-2 bg-canvas border border-hairline rounded-md text-ink focus:outline-none focus:ring-1 focus:ring-info-border focus:border-info-border min-h-[44px]">
               <option :value="null">无分类</option>
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                 {{ cat.name }}
@@ -158,8 +157,8 @@ onMounted(() => {
         </div>
         
         <div class="flex items-center gap-2">
-          <!-- 宽度预设选择器（紧凑样式） -->
-          <div class="flex items-center gap-1 bg-surface-soft rounded-md p-0.5">
+          <!-- 宽度预设选择器（紧凑样式）- 移动端隐藏 -->
+          <div class="hidden md:flex items-center gap-1 bg-surface-soft rounded-md p-0.5">
             <button
               v-for="(preset, key) in WIDTH_PRESETS"
               :key="key"
@@ -175,13 +174,24 @@ onMounted(() => {
             </button>
           </div>
           
-          <button class="btn-secondary text-sm px-4 py-2" :disabled="saving" @click="handleSave(true)">
-            草稿
+          <button class="btn-secondary text-sm px-3 md:px-4 py-2" :disabled="saving" @click="handleSave(true)">
+            <span class="hidden sm:inline">草稿</span>
+            <span class="sm:hidden">草</span>
           </button>
-          <button class="btn-primary text-sm px-4 py-2" :disabled="saving" @click="handleSave(false)">
+          <button class="btn-primary text-sm px-3 md:px-4 py-2" :disabled="saving" @click="handleSave(false)">
             {{ saving ? '保存中...' : '保存' }}
           </button>
         </div>
+      </div>
+
+      <!-- 移动端分类选择 -->
+      <div class="sm:hidden mb-3">
+        <select v-model="categoryId" class="w-full text-sm px-4 py-2 bg-canvas border border-hairline rounded-md text-ink focus:outline-none focus:ring-1 focus:ring-info-border focus:border-info-border min-h-[44px]">
+          <option :value="null">无分类</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+            {{ cat.name }}
+          </option>
+        </select>
       </div>
 
       <div v-if="errorMessage" class="mb-3 p-2.5 bg-red-50 border border-red-200 rounded-md transition-all duration-300">

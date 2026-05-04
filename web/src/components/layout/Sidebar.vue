@@ -3,6 +3,14 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCategoryStore, useAuthStore } from '@/stores'
 
+defineProps<{
+  open?: boolean
+}>()
+
+const emit = defineEmits<{
+  'close': []
+}>()
+
 const router = useRouter()
 const categoryStore = useCategoryStore()
 const authStore = useAuthStore()
@@ -21,12 +29,14 @@ function selectAllNotes() {
   activeItem.value = 'all'
   categoryStore.setActiveCategory(null)
   router.push({ path: '/', query: { status: undefined } })
+  emit('close')
 }
 
 function selectArchived() {
   activeItem.value = 'archived'
   categoryStore.setActiveCategory(null)
   router.push({ path: '/', query: { status: 'archived' } })
+  emit('close')
 }
 
 function selectCategory(categoryId: number) {
@@ -34,19 +44,37 @@ function selectCategory(categoryId: number) {
   const category = categories.value.find((c) => c.id === categoryId)
   categoryStore.setActiveCategory(category || null)
   router.push({ path: '/', query: { category: categoryId } })
+  emit('close')
 }
 </script>
 
 <template>
   <aside
     v-if="authStore.isAuthenticated"
-    class="hidden md:block fixed left-0 top-16 bottom-0 w-60 bg-surface-soft border-r border-hairline overflow-y-auto"
+    :class="[
+      'fixed left-0 top-16 bottom-0 w-60 bg-surface-soft overflow-y-auto z-50',
+      open ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0',
+      'md:block md:translate-x-0 md:opacity-100',
+    ]"
+    style="transition: transform 0.3s ease, opacity 0.3s ease;"
   >
-    <nav class="p-4">
+    <nav class="p-3 md:p-4">
+      <div class="flex justify-between items-center mb-4">
+        <span class="text-title-md text-ink font-semibold">记事本</span>
+        <button 
+          class="md:hidden btn-icon"
+          @click="emit('close')"
+        >
+          <svg class="w-5 h-5 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
       <div class="space-y-1">
         <button
           :class="[
-            'w-full h-11 px-4 flex items-center rounded-md text-left transition-colors',
+            'w-full h-11 px-4 flex items-center rounded-md text-left transition-colors min-h-[44px]',
             activeItem === 'all' ? 'bg-canvas text-ink' : 'text-body hover:bg-canvas/50',
           ]"
           @click="selectAllNotes"
@@ -64,7 +92,7 @@ function selectCategory(categoryId: number) {
 
         <button
           :class="[
-            'w-full h-11 px-4 flex items-center rounded-md text-left transition-colors',
+            'w-full h-11 px-4 flex items-center rounded-md text-left transition-colors min-h-[44px]',
             activeItem === 'archived' ? 'bg-canvas text-ink' : 'text-body hover:bg-canvas/50',
           ]"
           @click="selectArchived"
@@ -84,7 +112,11 @@ function selectCategory(categoryId: number) {
       <div class="mt-6">
         <div class="flex items-center justify-between px-4 mb-2">
           <span class="text-caption text-muted uppercase tracking-wide">分类</span>
-          <router-link to="/category" class="text-muted hover:text-ink transition-colors">
+          <router-link 
+            to="/category" 
+            class="text-muted hover:text-ink transition-colors"
+            @click="emit('close')"
+          >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -107,7 +139,7 @@ function selectCategory(categoryId: number) {
             v-for="category in categories"
             :key="category.id"
             :class="[
-              'w-full h-11 px-4 flex items-center rounded-md text-left transition-colors',
+              'w-full h-11 px-4 flex items-center rounded-md text-left transition-colors min-h-[44px]',
               activeItem === `category-${category.id}`
                 ? 'bg-canvas text-ink'
                 : 'text-body hover:bg-canvas/50',
