@@ -51,9 +51,7 @@ function initUserInfo() {
  email.value = user.value.email || '';
  phone.value = user.value.phone || '';
  if (user.value.avatar) {
- avatarPreview.value = user.value.avatar.startsWith('/uploads/') 
- ? '/api' + user.value.avatar 
- : user.value.avatar;
+ avatarPreview.value = user.value.avatar;
  }
  }
 }
@@ -235,9 +233,7 @@ async function uploadAvatar() {
  if (res.code === 200 && res.data) {
  authStore.user = res.data;
  if (res.data.avatar) {
- avatarPreview.value = res.data.avatar.startsWith('/uploads/')
- ? '/api' + res.data.avatar
- : res.data.avatar;
+ avatarPreview.value = res.data.avatar;
  }
  uploadStatus.value = 'success';
  uploadMessage.value = '头像上传成功';
@@ -258,9 +254,7 @@ async function uploadAvatar() {
 // 取消头像预览
 function cancelAvatarPreview() {
  if (user.value?.avatar) {
- avatarPreview.value = user.value.avatar.startsWith('/uploads/')
- ? '/api' + user.value.avatar
- : user.value.avatar;
+ avatarPreview.value = user.value.avatar;
  }
  else {
  avatarPreview.value = '';

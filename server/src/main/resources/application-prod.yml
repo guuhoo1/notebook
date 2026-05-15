@@ -70,7 +70,7 @@ sa-token:
 
 file:
   upload:
-    path: /data/notebook/uploads
+    path: /www/wwwroot/code/uploads
     base-url: /uploads
 
 logging:

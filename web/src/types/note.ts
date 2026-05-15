@@ -28,6 +28,7 @@ export interface Note {
   viewCount: number
   createTime: string
   updateTime: string
+  deletedAt: string | null
 }
 
 /**
@@ -45,6 +46,7 @@ export interface NoteListItem {
   viewCount: number
   createTime: string
   updateTime: string
+  deletedAt: string | null
 }
 
 /**
@@ -110,4 +112,21 @@ export interface Tag {
 export interface TagParams {
   name: string
   color?: string
+}
+
+/**
+ * 笔记版本类型
+ */
+export interface NoteVersion {
+  id: number
+  noteId: number
+  userId: number
+  versionNumber: number
+  title: string
+  content: string | null
+  mdContent: string | null
+  htmlContent: string | null
+  summary: string | null
+  changeSummary: string | null
+  createdAt: string
 }

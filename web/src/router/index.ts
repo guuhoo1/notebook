@@ -63,6 +63,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/settings/Settings.vue'),
         meta: { title: '设置' },
       },
+      {
+        path: 'recycle-bin',
+        name: 'RecycleBin',
+        component: () => import('@/views/note/RecycleBin.vue'),
+        meta: { title: '回收站' },
+      },
     ],
   },
   {

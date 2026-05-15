@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCategoryStore, useAuthStore } from '@/stores'
 
 defineProps<{
@@ -12,6 +12,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const route = useRoute()
 const categoryStore = useCategoryStore()
 const authStore = useAuthStore()
 
@@ -39,6 +40,13 @@ function selectArchived() {
   emit('close')
 }
 
+function selectRecycleBin() {
+  activeItem.value = 'recycle-bin'
+  categoryStore.setActiveCategory(null)
+  router.push('/recycle-bin')
+  emit('close')
+}
+
 function selectCategory(categoryId: number) {
   activeItem.value = `category-${categoryId}`
   const category = categories.value.find((c) => c.id === categoryId)
@@ -46,6 +54,12 @@ function selectCategory(categoryId: number) {
   router.push({ path: '/', query: { category: categoryId } })
   emit('close')
 }
+
+onMounted(() => {
+  if (route.path === '/recycle-bin') {
+    activeItem.value = 'recycle-bin'
+  }
+})
 </script>
 
 <template>
@@ -61,7 +75,7 @@ function selectCategory(categoryId: number) {
     <nav class="p-3 md:p-4">
       <div class="flex justify-between items-center mb-4">
         <span class="text-title-md text-ink font-semibold">记事本</span>
-        <button 
+        <button
           class="md:hidden btn-icon"
           @click="emit('close')"
         >
@@ -107,13 +121,31 @@ function selectCategory(categoryId: number) {
           </svg>
           <span class="flex-1">归档</span>
         </button>
+
+        <button
+          :class="[
+            'w-full h-11 px-4 flex items-center rounded-md text-left transition-colors min-h-[44px]',
+            activeItem === 'recycle-bin' ? 'bg-canvas text-ink' : 'text-body hover:bg-canvas/50',
+          ]"
+          @click="selectRecycleBin"
+        >
+          <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+          <span class="flex-1">回收站</span>
+        </button>
       </div>
 
       <div class="mt-6">
         <div class="flex items-center justify-between px-4 mb-2">
           <span class="text-caption text-muted uppercase tracking-wide">分类</span>
-          <router-link 
-            to="/category" 
+          <router-link
+            to="/category"
             class="text-muted hover:text-ink transition-colors"
             @click="emit('close')"
           >

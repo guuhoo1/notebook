@@ -6,12 +6,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.notebook.common.PageQuery;
 import com.notebook.common.PageResult;
 import com.notebook.common.R;
+import com.notebook.dto.ShareNoteVO;
 import com.notebook.entity.Note;
 import com.notebook.entity.NoteTag;
 import com.notebook.entity.Tag;
+import com.notebook.entity.User;
 import com.notebook.mapper.NoteMapper;
 import com.notebook.mapper.NoteTagMapper;
 import com.notebook.mapper.TagMapper;
+import com.notebook.mapper.UserMapper;
+import com.notebook.service.NoteVersionService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +33,15 @@ public class NoteService {
     private final NoteMapper noteMapper;
     private final NoteTagMapper noteTagMapper;
     private final TagMapper tagMapper;
+    private final UserMapper userMapper;
+    private final NoteVersionService noteVersionService;
 
-    public NoteService(NoteMapper noteMapper, NoteTagMapper noteTagMapper, TagMapper tagMapper) {
+    public NoteService(NoteMapper noteMapper, NoteTagMapper noteTagMapper, TagMapper tagMapper, UserMapper userMapper, @Lazy NoteVersionService noteVersionService) {
         this.noteMapper = noteMapper;
         this.noteTagMapper = noteTagMapper;
         this.tagMapper = tagMapper;
+        this.userMapper = userMapper;
+        this.noteVersionService = noteVersionService;
     }
 
     public R<PageResult<Note>> getList(PageQuery query) {
@@ -156,6 +165,8 @@ public class NoteService {
             updateNoteTags(id, tagIds, userId);
         }
 
+        noteVersionService.createVersion(id);
+
         return R.ok(note).message("更新成功");
     }
 
@@ -168,6 +179,11 @@ public class NoteService {
             return R.fail("笔记不存在");
         }
 
+        // 设置删除时间
+        note.setDeletedAt(LocalDateTime.now());
+        noteMapper.updateById(note);
+
+        // 逻辑删除
         noteMapper.deleteById(id);
 
         LambdaQueryWrapper<NoteTag> wrapper = new LambdaQueryWrapper<>();
@@ -175,6 +191,60 @@ public class NoteService {
         noteTagMapper.delete(wrapper);
 
         return R.<Void>ok().message("删除成功");
+    }
+
+    public R<List<Note>> getDeletedNotes() {
+        Long userId = StpUtil.getLoginIdAsLong();
+        List<Note> notes = noteMapper.selectDeletedNotes(userId);
+        return R.ok(notes);
+    }
+
+    @Transactional
+    public R<Void> restoreNote(Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
+
+        int count = noteMapper.restoreNote(id, userId);
+        if (count == 0) {
+            return R.fail("笔记不存在或无法恢复");
+        }
+
+        return R.<Void>ok().message("恢复成功");
+    }
+
+    @Transactional
+    public R<Void> permanentDelete(Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
+
+        // 先删除关联的标签
+        LambdaQueryWrapper<NoteTag> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(NoteTag::getNoteId, id);
+        noteTagMapper.delete(wrapper);
+
+        // 永久删除
+        int count = noteMapper.permanentDelete(id, userId);
+        if (count == 0) {
+            return R.fail("笔记不存在或无法删除");
+        }
+
+        return R.<Void>ok().message("永久删除成功");
+    }
+
+    @Transactional
+    public R<Void> emptyRecycleBin() {
+        Long userId = StpUtil.getLoginIdAsLong();
+        List<Note> deletedNotes = noteMapper.selectDeletedNotes(userId);
+
+        for (Note note : deletedNotes) {
+            // 删除关联的标签
+            LambdaQueryWrapper<NoteTag> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(NoteTag::getNoteId, note.getId());
+            noteTagMapper.delete(wrapper);
+
+            // 永久删除
+            noteMapper.permanentDelete(note.getId(), userId);
+        }
+
+        return R.<Void>ok().message("回收站已清空");
     }
 
     public R<Void> pin(Long id, Integer isPinned) {
@@ -342,7 +412,7 @@ public class NoteService {
         return R.ok(info);
     }
 
-    public R<Note> viewShare(String shareCode) {
+    public R<ShareNoteVO> viewShare(String shareCode) {
         LambdaQueryWrapper<Note> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Note::getShareCode, shareCode)
                 .eq(Note::getIsPublic, 1)
@@ -366,7 +436,12 @@ public class NoteService {
         note.setShareViewCount(note.getShareViewCount() != null ? note.getShareViewCount() + 1 : 1);
         noteMapper.updateById(note);
 
-        return R.ok(note);
+        User author = userMapper.selectById(note.getUserId());
+        String authorName = author != null ? author.getNickname() : "匿名用户";
+        String authorAvatar = author != null ? author.getAvatar() : null;
+
+        ShareNoteVO vo = new ShareNoteVO(note, authorName, authorAvatar);
+        return R.ok(vo);
     }
 
     private String generateShareCode() {

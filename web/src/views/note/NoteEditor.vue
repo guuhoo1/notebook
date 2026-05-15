@@ -2,8 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNoteStore, useCategoryStore } from '@/stores'
-import type { NoteParams } from '@/types'
+import type { NoteParams, NoteVersion } from '@/types'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import VersionHistory from '@/components/VersionHistory.vue'
 import { useLocalStorage } from '@vueuse/core'
 
 const router = useRouter()
@@ -23,6 +24,12 @@ const saving = ref(false)
 const errorMessage = ref('')
 const markdownMode = ref(false)
 const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null)
+const showVersionHistory = ref(false)
+
+function handleVersionRestore(version: NoteVersion) {
+  title.value = version.title
+  content.value = version.content || version.mdContent || ''
+}
 
 // 宽度预设配置
 const WIDTH_PRESETS = {
@@ -179,6 +186,16 @@ onMounted(() => {
             </button>
           </div>
           
+          <button
+            v-if="!isNew"
+            class="btn-icon"
+            title="版本历史"
+            @click="showVersionHistory = true"
+          >
+            <svg class="w-5 h-5 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
           <button class="btn-secondary text-sm px-3 md:px-4 py-2" :disabled="saving" @click="handleSave(true)">
             <span class="hidden sm:inline">草稿</span>
             <span class="sm:hidden">草</span>
@@ -221,4 +238,11 @@ onMounted(() => {
       </div>
     </template>
   </div>
+
+  <VersionHistory
+    :note-id="noteId"
+    :visible="showVersionHistory"
+    @close="showVersionHistory = false"
+    @restore="handleVersionRestore"
+  />
 </template>

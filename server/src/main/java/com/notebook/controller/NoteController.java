@@ -14,6 +14,7 @@ import com.notebook.service.NoteService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/note")
@@ -102,7 +103,49 @@ public class NoteController {
      * @return 分享链接信息
      */
     @GetMapping("/{id}/share")
-    public R<java.util.Map<String, Object>> getShareInfo(@PathVariable Long id) {
+    public R<Map<String, Object>> getShareInfo(@PathVariable Long id) {
         return noteService.getShareInfo(id);
+    }
+
+    /**
+     * 获取回收站笔记列表
+     *
+     * @return 笔记列表
+     */
+    @GetMapping("/recycle-bin")
+    public R<List<Note>> getRecycleBin() {
+        return noteService.getDeletedNotes();
+    }
+
+    /**
+     * 恢复笔记
+     *
+     * @param id 笔记ID
+     * @return 操作结果
+     */
+    @PutMapping("/{id}/restore")
+    public R<Void> restoreNote(@PathVariable Long id) {
+        return noteService.restoreNote(id);
+    }
+
+    /**
+     * 永久删除笔记
+     *
+     * @param id 笔记ID
+     * @return 操作结果
+     */
+    @DeleteMapping("/{id}/permanent")
+    public R<Void> permanentDelete(@PathVariable Long id) {
+        return noteService.permanentDelete(id);
+    }
+
+    /**
+     * 清空回收站
+     *
+     * @return 操作结果
+     */
+    @DeleteMapping("/recycle-bin")
+    public R<Void> emptyRecycleBin() {
+        return noteService.emptyRecycleBin();
     }
 }

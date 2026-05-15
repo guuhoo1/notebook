@@ -2,12 +2,17 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNoteStore, useCategoryStore } from '@/stores'
-import type { NoteListItem } from '@/types'
+import { shareApi } from '@/api/share'
+import type { NoteListItem, ShareHistoryItem } from '@/types'
 
 const router = useRouter()
 const route = useRoute()
 const noteStore = useNoteStore()
 const categoryStore = useCategoryStore()
+
+// 最近浏览的分享
+const recentShares = ref<ShareHistoryItem[]>([])
+const loadingHistory = ref(false)
 
 const searchKeyword = ref('')
 const currentPage = ref(1)
@@ -116,6 +121,35 @@ function formatDate(dateStr: string) {
   }
 }
 
+async function loadRecentShares() {
+  loadingHistory.value = true
+  try {
+    const response = await shareApi.getHistory(20)
+    if (response.code === 200 && response.data) {
+      recentShares.value = response.data
+    }
+  } catch (e) {
+    console.error('加载浏览历史失败', e)
+  } finally {
+    loadingHistory.value = false
+  }
+}
+
+async function clearRecentShares() {
+  if (confirm('确定要清空浏览历史吗？')) {
+    try {
+      await shareApi.clearHistory()
+      recentShares.value = []
+    } catch (e) {
+      console.error('清空浏览历史失败', e)
+    }
+  }
+}
+
+function goToShare(share: ShareHistoryItem) {
+  router.push(`/share/${share.shareCode}`)
+}
+
 watch(
   () => route.query,
   () => {
@@ -133,6 +167,7 @@ watch(activeCategory, () => {
 onMounted(() => {
   categoryStore.fetchCategories()
   loadNotes()
+  loadRecentShares()
 })
 </script>
 
@@ -178,6 +213,63 @@ onMounted(() => {
           placeholder="搜索笔记..."
           @keyup.enter="handleSearch"
         />
+      </div>
+    </div>
+
+    <!-- 最近浏览的分享 -->
+    <div class="mb-8">
+      <div v-if="loadingHistory" class="flex justify-center py-8">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+      <div v-else-if="recentShares.length > 0">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-title-sm text-ink flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            最近浏览的分享
+          </h2>
+          <button
+            class="text-sm text-muted hover:text-red-500"
+            @click="clearRecentShares"
+          >
+            清空历史
+          </button>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div
+            v-for="share in recentShares"
+            :key="share.shareCode"
+            class="card cursor-pointer"
+            @click="goToShare(share)"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                  <img
+                    v-if="share.authorAvatar"
+                    :src="share.authorAvatar"
+                    class="w-full h-full object-cover"
+                  />
+                  <span v-else class="text-primary text-xs font-bold">
+                    {{ share.authorName.charAt(0).toUpperCase() }}
+                  </span>
+                </div>
+                <span class="text-sm text-muted">{{ share.authorName }}</span>
+              </div>
+            </div>
+            <h3 class="text-label-md text-ink line-clamp-1 mb-1">{{ share.title }}</h3>
+            <div class="flex items-center justify-between text-xs text-muted">
+              <span>{{ formatDate(share.visitTime) }} 浏览</span>
+              <span>{{ share.shareViewCount || 0 }} 次查看</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 import { http } from './request'
-import type { Note, NoteDetail, NoteListItem, NoteParams, PageQuery, PageResult } from '@/types'
+import type { Note, NoteDetail, NoteListItem, NoteParams, PageQuery, PageResult, NoteVersion } from '@/types'
 
 /**
  * 笔记相关API
@@ -80,5 +80,54 @@ export const noteApi = {
    */
   cancelShare(id: number) {
     return http.delete<void>(`/note/${id}/share`)
+  },
+
+  /**
+   * 获取回收站笔记列表
+   */
+  getRecycleBin() {
+    return http.get<NoteListItem[]>('/note/recycle-bin')
+  },
+
+  /**
+   * 恢复笔记
+   */
+  restore(id: number) {
+    return http.put<void>(`/note/${id}/restore`)
+  },
+
+  /**
+   * 永久删除笔记
+   */
+  permanentDelete(id: number) {
+    return http.delete<void>(`/note/${id}/permanent`)
+  },
+
+  /**
+   * 清空回收站
+   */
+  emptyRecycleBin() {
+    return http.delete<void>('/note/recycle-bin')
+  },
+
+  /**
+   * 获取笔记版本列表
+   */
+  getVersions(noteId: number) {
+    return http.get<NoteVersion[]>(`/note/${noteId}/versions`)
+  },
+
+  /**
+   * 获取特定版本详情
+   */
+  getVersion(noteId: number, versionNumber: number) {
+    return http.get<NoteVersion>(`/note/${noteId}/versions/${versionNumber}`)
+  },
+
+  /**
+   * 恢复到指定版本
+   */
+  restoreVersion(noteId: number, versionNumber: number) {
+    return http.put<void>(`/note/${noteId}/versions/${versionNumber}/restore`)
   },
 }
